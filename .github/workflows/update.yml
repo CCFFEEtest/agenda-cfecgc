@@ -1,0 +1,52 @@
+# Regenere l'agenda toutes les 2 heures et le publie sur GitHub Pages.
+name: Mise a jour de l'agenda
+
+on:
+  schedule:
+    - cron: "7 */2 * * *"   # toutes les 2 h (heure UTC), a la 7e minute
+  workflow_dispatch:         # bouton "Run workflow" pour lancer a la main
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Recuperer les evenements et generer la page
+        shell: powershell
+        run: |
+          powershell -NoProfile -ExecutionPolicy Bypass -File .\fetch-agenda.ps1
+          $code = $LASTEXITCODE
+          Get-Content .\fetch.log -ErrorAction SilentlyContinue
+          if ($code -ne 0) { exit $code }
+
+      - name: Preparer le site
+        shell: powershell
+        run: |
+          New-Item -ItemType Directory -Force _site | Out-Null
+          Copy-Item index.html _site\index.html
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5
