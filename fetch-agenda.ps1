@@ -104,12 +104,12 @@ $page = @"
 <title>Agenda CFE-CGC Orange</title>
 <style>
   :root {
-    --bg: #f6f6f8; --card: #ffffff; --text: #16161d; --muted: #6b6b7a;
-    --line: #e7e7ee; --accent: #ff7900; --accent-soft: #fff1e5;
+    --bg: #f6f6f8; --card: #ffffff; --text: #16161d; --muted: #555555;
+    --line: #e8e2d9; --accent: #faa82b; --accent-dark: #96500d; --accent-soft: #fff8ef;
   }
   @media (prefers-color-scheme: dark) {
     :root { --bg: #111116; --card: #1b1b22; --text: #f2f2f6; --muted: #9a9aab;
-            --line: #2a2a34; --accent: #ff8a1f; --accent-soft: #2b1d10; }
+            --line: #3a342c; --accent: #faa82b; --accent-dark: #f5b860; --accent-soft: #2b2112; }
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: "Segoe UI", system-ui, -apple-system, sans-serif; background: var(--bg);
@@ -117,7 +117,7 @@ $page = @"
   .frame { max-width: 1100px; margin: 0 auto; background: var(--bg); border: 1px solid var(--line); border-radius: 22px;
            overflow: hidden; box-shadow: 0 12px 36px rgba(0,0,0,.10); }
   .banner { display: flex; align-items: center; justify-content: space-between; gap: 16px;
-            background: var(--accent); color: #fff; padding: 18px 28px; }
+            background: var(--accent); color: #352018; padding: 18px 28px; }
   .banner h1 { font-size: clamp(1.7rem, 5vw, 2.4rem); letter-spacing: -.02em; line-height: 1.2; }
   .banner a { color: inherit; text-decoration: none; }
   .bn-ico { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 12px; transition: background .15s; }
@@ -161,28 +161,30 @@ $page = @"
   .today-tag { display: block; font-style: normal; font-size: .62rem; letter-spacing: .1em; margin-bottom: 3px;
                color: #fff; background: var(--text); border-radius: 99px; padding: 2px 8px; width: max-content; margin-inline: auto; }
   .tl-days .is-today:not(.sel) button { background: var(--accent-soft); box-shadow: inset 0 -3px 0 var(--accent); }
-  .tl-days .is-today .dot { box-shadow: 0 0 0 4px rgba(255,121,0,.25); }
-  .tl-days .sel .today-tag { background: #fff; color: var(--accent); }
+  .tl-days .is-today .dot { box-shadow: 0 0 0 4px rgba(250,168,43,.3); }
+  .tl-days .sel .today-tag { background: #fff; color: var(--accent-dark); }
   .tl-cards { display: grid; grid-template-columns: 170px 1fr; gap: 16px; padding: 16px; align-items: start; }
   .plan { position: sticky; top: 12px; margin-left: 30px; border-left: 1px solid var(--line);
           background-image: linear-gradient(var(--line) 1px, transparent 1px); background-size: 100% var(--ph); }
   .ph { position: absolute; left: -32px; transform: translateY(-50%); font-size: .68rem; color: var(--muted); }
   .ph:first-child { transform: none; }
   .pcol { position: absolute; inset: 0; }
-  .pblk { position: absolute; border-radius: 5px; opacity: .85; transition: opacity .15s, box-shadow .15s; }
-  .pblk.hl, .pblk:hover { opacity: 1; box-shadow: 0 0 0 2px var(--card), 0 0 0 4px currentColor; color: var(--text); }
+  .pblk { position: absolute; border-radius: 5px; opacity: .85; cursor: pointer; transition: opacity .2s, box-shadow .2s, transform .2s cubic-bezier(.34,1.56,.64,1); }
+  .pblk.hl, .pblk:hover { opacity: 1; z-index: 2; transform: scale(1.05); box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--ev-bd, currentColor), 0 4px 12px rgba(0,0,0,.15); }
+  .pblk { display: flex; align-items: center; justify-content: center; overflow: hidden; text-decoration: none; }
+  .pdur { font-size: .68rem; font-weight: 700; line-height: 1; color: #352018; white-space: nowrap; }
   .pnow { position: absolute; left: -4px; right: 0; height: 2px; background: #d9534f; }
   .cards { display: grid; gap: 10px; }
   .none { color: var(--muted); font-size: .9rem; padding: 8px 0; }
   .ev-card { display: flex; flex-direction: column; gap: 8px; padding: 14px 16px; border: 1px solid var(--line);
              border-left: 5px solid var(--ev-bd); border-radius: 10px; background: var(--card);
-             color: var(--text); text-decoration: none; transition: box-shadow .15s, transform .15s; }
-  .ev-card:hover, .ev-card.hl { box-shadow: 0 4px 14px rgba(0,0,0,.10); transform: translateX(2px); }
+             color: var(--text); text-decoration: none; transition: box-shadow .2s, transform .2s cubic-bezier(.34,1.56,.64,1), border-left-width .2s, background-color .2s; }
+  .ev-card:hover, .ev-card.hl { box-shadow: 0 6px 18px rgba(0,0,0,.12); transform: translateX(5px) scale(1.01); border-left-width: 7px; background-color: color-mix(in srgb, var(--ev-bd) 10%, var(--card)); }
   .ev-card .when { display: flex; flex-wrap: wrap; gap: 6px 10px; font-size: .78rem; color: var(--muted); }
   .ev-card .when b { color: var(--text); }
   .ev-card .ttl { font-weight: 600; line-height: 1.3; }
   .ev-card p { font-size: .85rem; color: var(--muted); display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
-  .ev-card .more { font-size: .8rem; color: var(--accent); font-weight: 600; margin-top: auto; }
+  .ev-card .more { font-size: .8rem; color: var(--accent-dark); font-weight: 600; margin-top: auto; }
   @media (max-width: 600px) {
     .tl-arrow { width: 52px; } .tl-arrow .lb { display: none; }
     .tl-arrow .ar { width: 38px; height: 38px; } .tl-arrow .ar svg { width: 19px; height: 19px; }
@@ -206,13 +208,13 @@ $page = @"
           border: 1px solid var(--line); background: var(--card); color: var(--text); }
   .mday .num { font-weight: 600; font-size: .95rem; }
   .mday .cnt { position: absolute; right: 7px; bottom: 7px; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 99px;
-               background: var(--accent); color: #fff; font-size: .75rem; font-weight: 700; line-height: 22px; text-align: center; }
+               background: var(--accent); color: #352018; font-size: .75rem; font-weight: 700; line-height: 22px; text-align: center; }
   .mday.has { cursor: pointer; }
   .mday.has:hover { border-color: var(--accent); }
   .mday:disabled { cursor: default; color: var(--muted); }
   .mday.past { opacity: .45; }
   .mday.today { border: 2px solid #22222b; }
-  .mday.today .num { color: var(--accent); }
+  .mday.today .num { color: var(--accent-dark); }
   .mday.today .num::after { content: " auj."; font-size: .7rem; font-weight: 600; }
   .mday.sel { background: var(--accent-soft); border-color: var(--accent); }
   .mdetail { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 12px; }
@@ -257,9 +259,14 @@ $eventsHtml
     function hm(s) { var m = /(\d{1,2})\s*h\s*(\d{2})?/i.exec(s || ''); return m ? +m[1] + (+(m[2] || 0)) / 60 : null; }
     EV.forEach(function (e) {
       var p = (e.h || '').split('-'); e.s = hm(p[0]); e.e = hm(p[1]);
+      e.dur = '';
+      if (e.s != null && e.e != null && e.e > e.s) {
+        var mn = Math.round((e.e - e.s) * 60), hh = Math.floor(mn / 60), mm = mn % 60;
+        e.dur = hh ? hh + 'h' + (mm ? (mm < 10 ? '0' : '') + mm : '') : mm + 'min';
+      }
       if (e.s == null) { e.s = 9; e.e = 10; } if (e.e == null || e.e <= e.s) e.e = e.s + 1;
     });
-    var COLORS = ['#5f9e6e', '#5b86c5', '#e69a4c', '#9aa0a8', '#e08a8a', '#9580c4', '#4fa9a6', '#c7a64a'];
+    var COLORS = ['#8fae8a', '#7fa6a6', '#8da4c9', '#a98cad', '#c98b7a'];
     dates.sort();
     if (!dates.length) return;
     var fD = new Intl.DateTimeFormat('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
@@ -303,8 +310,8 @@ $eventsHtml
       list.forEach(function (e) {
         var w = 100 / e.n;
         plan += '<a class="pblk" data-k="' + e.i + '" href="' + esc(e.u) + '" target="_blank" rel="noopener" title="' + esc(e.t + ' - ' + (e.h || '')) + '"'
-          + ' style="background:' + e.c + ';top:' + ((e.s - H0) * HH + 1) + 'px;height:' + Math.max((e.e - e.s) * HH - 2, 8) + 'px;'
-          + 'left:calc(' + (w * e.lane) + '% + 2px);width:calc(' + w + '% - 4px)"></a>';
+          + ' style="background:' + e.c + ';--ev-bd:' + e.c + ';top:' + ((e.s - H0) * HH + 1) + 'px;height:' + Math.max((e.e - e.s) * HH - 2, 8) + 'px;'
+          + 'left:calc(' + (w * e.lane) + '% + 2px);width:calc(' + w + '% - 4px)">' + (e.dur ? '<span class="pdur">' + e.dur + '</span>' : '') + '</a>';
       });
       if (day === todayKey) {
         var t = now.getHours() + now.getMinutes() / 60;
