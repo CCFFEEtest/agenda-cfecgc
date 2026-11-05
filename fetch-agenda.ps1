@@ -84,7 +84,7 @@ $eventsHtml = @"
     </div>
     <div class="tl-cards" id="tlCards"></div>
   </section>
-  <section class="recap">
+  <section class="recap" id="calendrier">
     <h2>Vue calendrier</h2>
     <div class="months" id="months"></div>
   </section>
@@ -113,11 +113,22 @@ $page = @"
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: "Segoe UI", system-ui, -apple-system, sans-serif; background: var(--bg);
-         color: var(--text); line-height: 1.4; padding: 0 0 64px; }
-  .banner { background: var(--accent); color: #fff; padding: 22px 16px; }
-  .banner h1 { max-width: 1040px; margin: 0 auto; font-size: clamp(1.7rem, 5vw, 2.4rem); letter-spacing: -.02em; line-height: 1.2; }
+         color: var(--text); line-height: 1.4; padding: 32px 16px 48px; }
+  .frame { max-width: 1100px; margin: 0 auto; background: var(--bg); border: 1px solid var(--line); border-radius: 22px;
+           overflow: hidden; box-shadow: 0 12px 36px rgba(0,0,0,.10); }
+  .banner { display: flex; align-items: center; justify-content: space-between; gap: 16px;
+            background: var(--accent); color: #fff; padding: 18px 28px; }
+  .banner h1 { font-size: clamp(1.7rem, 5vw, 2.4rem); letter-spacing: -.02em; line-height: 1.2; }
   .banner a { color: inherit; text-decoration: none; }
-  .wrap { max-width: 1040px; margin: 0 auto; padding: 28px 16px 0; }
+  .bn-ico { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 12px; transition: background .15s; }
+  .bn-ico:hover { background: rgba(255,255,255,.18); }
+  .bn-ico svg { width: 30px; height: 30px; }
+  .wrap { padding: 24px 28px 28px; }
+  @media (max-width: 600px) {
+    body { padding: 0; }
+    .frame { border: 0; border-radius: 0; box-shadow: none; }
+    .banner { padding: 16px; } .wrap { padding: 20px 12px 24px; }
+  }
   header { margin-bottom: 16px; }
   header h2 { font-size: 1.15rem; margin-bottom: 4px; }
   .sub { color: var(--muted); font-size: .95rem; }
@@ -224,7 +235,8 @@ $page = @"
 </style>
 </head>
 <body>
-<div class="banner"><h1><a href="./">Agenda CFE-CGC Orange</a></h1></div>
+<div class="frame">
+<div class="banner"><h1><a href="./">Agenda CFE-CGC Orange</a></h1><a class="bn-ico" href="#calendrier" title="Vue calendrier" aria-label="Vue calendrier"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M7.5 14h.01M12 14h.01M16.5 14h.01M7.5 17.5h.01M12 17.5h.01"/></svg></a></div>
 <div class="wrap">
   <header>
     <h2>Prochains &eacute;v&eacute;nements</h2>
@@ -400,6 +412,7 @@ $eventsHtml
   })();
   </script>
   <footer>Prochaine mise &agrave; jour vers $next &middot; les rendez-vous s'ouvrent sur le site d'origine.</footer>
+</div>
 </div>
 </body>
 </html>
