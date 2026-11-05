@@ -35,7 +35,7 @@ jobs:
         shell: powershell
         run: |
           New-Item -ItemType Directory -Force _site | Out-Null
-          Copy-Item index.html _site\index.html
+          Copy-Item index.html, style.css _site\
 
       - uses: actions/upload-pages-artifact@v5
         with:
