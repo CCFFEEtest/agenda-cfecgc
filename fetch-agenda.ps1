@@ -85,7 +85,7 @@ $eventsHtml = @"
     <div class="tl-cards" id="tlCards"></div>
   </section>
   <section class="recap">
-    <h2>Calendrier des &eacute;v&eacute;nements</h2>
+    <h2>Vue calendrier</h2>
     <div class="months" id="months"></div>
   </section>
   <script>window.EVENTS = $evJson;</script>
@@ -113,13 +113,13 @@ $page = @"
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: "Segoe UI", system-ui, -apple-system, sans-serif; background: var(--bg);
-         color: var(--text); line-height: 1.4; padding: 40px 16px 64px; }
-  .wrap { max-width: 1040px; margin: 0 auto; }
-  header { margin-bottom: 28px; }
-  .kicker { display: inline-block; font-size: .75rem; font-weight: 700; letter-spacing: .12em;
-            text-transform: uppercase; color: var(--accent); background: var(--accent-soft);
-            padding: 4px 10px; border-radius: 99px; }
-  h1 { font-size: clamp(1.7rem, 5vw, 2.4rem); letter-spacing: -.02em; margin: 12px 0 6px; }
+         color: var(--text); line-height: 1.4; padding: 0 0 64px; }
+  .banner { background: var(--accent); color: #fff; padding: 22px 16px; }
+  .banner h1 { max-width: 1040px; margin: 0 auto; font-size: clamp(1.7rem, 5vw, 2.4rem); letter-spacing: -.02em; line-height: 1.2; }
+  .banner a { color: inherit; text-decoration: none; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 28px 16px 0; }
+  header { margin-bottom: 16px; }
+  header h2 { font-size: 1.15rem; margin-bottom: 4px; }
   .sub { color: var(--muted); font-size: .95rem; }
   .sub a { color: inherit; }
   a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -224,10 +224,10 @@ $page = @"
 </style>
 </head>
 <body>
+<div class="banner"><h1><a href="./">Agenda CFE-CGC Orange</a></h1></div>
 <div class="wrap">
   <header>
-    <span class="kicker">Agenda</span>
-    <h1>Prochains &eacute;v&eacute;nements</h1>
+    <h2>Prochains &eacute;v&eacute;nements</h2>
     <p class="sub">$($events.Count) rendez-vous &agrave; venir sur <a href="$source" target="_blank" rel="noopener">cfecgc-orange.org</a> &middot; mis &agrave; jour $stamp</p>
   </header>
 $eventsHtml
