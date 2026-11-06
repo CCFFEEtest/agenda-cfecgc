@@ -1,6 +1,6 @@
 # Recupere les rendez-vous a venir de l'agenda de cfecgc-orange.org
 # et genere index.html (timeline + planning du jour + cartouches).
-# A lancer toutes les 2 heures (Planificateur de taches Windows).
+# Lance 3 fois par jour (7h, 14h, 19h heure de Paris) par GitHub Actions.
 
 $ErrorActionPreference = 'Stop'
 $source  = 'https://www.cfecgc-orange.org/evenements/'
@@ -92,7 +92,9 @@ $eventsHtml = @"
 "@
 $now   = ParisNow
 $stamp = $now.ToString("dddd d MMMM yyyy '&agrave;' HH'h'mm", $fr)
-$next  = $now.AddHours(2).ToString("HH'h'mm", $fr)
+# Prochain passage planifie (7h, 14h, 19h heure de Paris, voir .github/workflows/update.yml)
+$slot = @(7, 14, 19) | Where-Object { $_ -gt $now.Hour } | Select-Object -First 1
+$next = if ($slot) { "${slot}h00" } else { 'demain 7h00' }
 
 $page = @"
 <!doctype html>
@@ -103,10 +105,43 @@ $page = @"
 <meta http-equiv="refresh" content="900">
 <title>Agenda CFE-CGC Orange</title>
 <link rel="stylesheet" href="style.css">
+<script>
+  (function () {
+    var t = null;
+    try { t = localStorage.getItem('theme'); } catch (e) {}
+    if (t !== 'light' && t !== 'dark') t = (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', t);
+  })();
+</script>
 </head>
 <body>
 <div class="frame">
-<div class="banner"><h1><a href="./">Agenda CFE-CGC Orange</a></h1><a class="bn-ico" href="#calendrier" title="Vue calendrier" aria-label="Vue calendrier"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M7.5 14h.01M12 14h.01M16.5 14h.01M7.5 17.5h.01M12 17.5h.01"/></svg></a></div>
+<div class="banner"><h1><a href="./">Agenda CFE-CGC Orange</a></h1><button type="button" class="bn-ico" id="themeBtn" title="Changer de th&egrave;me" aria-label="Changer de th&egrave;me"><svg class="ico-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><svg class="ico-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg></button></div>
+<script>
+  (function () {
+    var root = document.documentElement, btn = document.getElementById('themeBtn');
+    function label() {
+      var dark = root.getAttribute('data-theme') === 'dark';
+      btn.title = dark ? 'Passer en th\u00e8me clair' : 'Passer en th\u00e8me sombre';
+      btn.setAttribute('aria-label', btn.title);
+    }
+    btn.addEventListener('click', function () {
+      var t = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', t);
+      try { localStorage.setItem('theme', t); } catch (e) {}
+      label();
+    });
+    if (window.matchMedia) {
+      var mq = matchMedia('(prefers-color-scheme: dark)'), onSys = function (e) {
+        var saved = null;
+        try { saved = localStorage.getItem('theme'); } catch (x) {}
+        if (!saved) { root.setAttribute('data-theme', e.matches ? 'dark' : 'light'); label(); }
+      };
+      if (mq.addEventListener) mq.addEventListener('change', onSys); else if (mq.addListener) mq.addListener(onSys);
+    }
+    label();
+  })();
+</script>
 <div class="wrap">
   <header>
     <h2>Prochains &eacute;v&eacute;nements</h2>

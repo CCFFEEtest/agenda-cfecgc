@@ -1,9 +1,11 @@
-# Regenere l'agenda toutes les 2 heures et le publie sur GitHub Pages.
+# Regenere l'agenda 3 fois par jour (7h, 14h et 19h, heure de Paris) et le publie sur GitHub Pages.
 name: Mise a jour de l'agenda
 
 on:
   schedule:
-    - cron: "7 */2 * * *"   # toutes les 2 h (heure UTC), a la 7e minute
+    # Heures UTC : 7h/14h/19h a Paris = 6h/13h/18h UTC en hiver, 5h/12h/17h UTC en ete.
+    # Les deux series sont declenchees ; le job "horaire" ne garde que celle qui tombe a 7h, 14h ou 19h a Paris.
+    - cron: "7 5,6,12,13,17,18 * * *"
   workflow_dispatch:         # bouton "Run workflow" pour lancer a la main
   push:
     branches: [main]
@@ -18,7 +20,24 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  horaire:
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.check.outputs.run }}
+    steps:
+      - id: check
+        name: Verifier l'heure de Paris
+        run: |
+          h=$(TZ=Europe/Paris date +%-H)
+          if [ "$GITHUB_EVENT_NAME" != "schedule" ] || [ "$h" = 7 ] || [ "$h" = 14 ] || [ "$h" = 19 ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"; echo "Mise a jour (Paris ${h}h)"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"; echo "Pas l'heure (Paris ${h}h) : rien a faire"
+          fi
+
   build:
+    needs: horaire
+    if: needs.horaire.outputs.run == 'true'
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v7

@@ -3,7 +3,7 @@
 Page qui affiche les prochains événements de https://www.cfecgc-orange.org/evenements/ :
 timeline, planning du jour et calendrier mensuel. Chaque événement renvoie vers le site d'origine.
 
-La page est régénérée **toutes les 2 heures** par GitHub Actions et publiée sur GitHub Pages.
+La page est régénérée **3 fois par jour (7h, 14h et 19h, heure de Paris)** par GitHub Actions et publiée sur GitHub Pages.
 
 ## Mise en ligne (une seule fois)
 

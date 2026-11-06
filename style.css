@@ -1,12 +1,16 @@
 /* Agenda - feuille de style (independante du script, reutilisable) */
+/* Theme clair par defaut ; sombre selon le systeme, ou force par le bouton soleil/lune (data-theme sur <html>). */
 :root {
+  color-scheme: light;
   --bg: #f6f6f8; --card: #ffffff; --text: #16161d; --muted: #555555;
   --line: #e8e2d9; --accent: #faa82b; --accent-dark: #96500d; --accent-soft: #fff8ef;
 }
 @media (prefers-color-scheme: dark) {
-  :root { --bg: #111116; --card: #1b1b22; --text: #f2f2f6; --muted: #9a9aab;
+  :root:not([data-theme="light"]) { color-scheme: dark; --bg: #111116; --card: #1b1b22; --text: #f2f2f6; --muted: #9a9aab;
           --line: #3a342c; --accent: #faa82b; --accent-dark: #f5b860; --accent-soft: #2b2112; }
 }
+:root[data-theme="dark"] { color-scheme: dark; --bg: #111116; --card: #1b1b22; --text: #f2f2f6; --muted: #9a9aab;
+          --line: #3a342c; --accent: #faa82b; --accent-dark: #f5b860; --accent-soft: #2b2112; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: "Segoe UI", system-ui, -apple-system, sans-serif; background: var(--bg);
        color: var(--text); line-height: 1.4; padding: 32px 16px 48px; }
@@ -16,9 +20,12 @@ body { font-family: "Segoe UI", system-ui, -apple-system, sans-serif; background
           background: var(--accent); color: #352018; padding: 18px 28px; }
 .banner h1 { font-size: clamp(1.7rem, 5vw, 2.4rem); letter-spacing: -.02em; line-height: 1.2; }
 .banner a { color: inherit; text-decoration: none; }
-.bn-ico { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 12px; transition: background .15s; }
+.bn-ico { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 12px; transition: background .15s;
+          font: inherit; color: inherit; background: none; border: 0; cursor: pointer; padding: 0; }
 .bn-ico:hover { background: rgba(255,255,255,.18); }
 .bn-ico svg { width: 30px; height: 30px; }
+.bn-ico .ico-moon, [data-theme="dark"] .bn-ico .ico-sun { display: none; }
+[data-theme="dark"] .bn-ico .ico-moon { display: block; }
 .wrap { padding: 24px 28px 28px; }
 @media (max-width: 600px) {
   body { padding: 0; }
@@ -51,14 +58,14 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outlin
 .tl-days .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--accent); position: relative; z-index: 1; }
 .tl-days .n { font-size: .78rem; color: var(--muted); align-self: start; padding-top: 8px; }
 .tl-days button:hover .dot { transform: scale(1.25); }
-.tl-days .sel button { background: var(--accent); color: #fff; }
-.tl-days .sel .dot { background: #fff; }
-.tl-days .sel .n { color: #fff; }
+.tl-days .sel button { background: var(--accent); color: #352018; }
+.tl-days .sel .dot { background: #352018; }
+.tl-days .sel .n { color: #352018; }
 .today-tag { display: block; font-style: normal; font-size: .62rem; letter-spacing: .1em; margin-bottom: 3px;
-             color: #fff; background: var(--text); border-radius: 99px; padding: 2px 8px; width: max-content; margin-inline: auto; }
+             color: var(--card); background: var(--text); border-radius: 99px; padding: 2px 8px; width: max-content; margin-inline: auto; }
 .tl-days .is-today:not(.sel) button { background: var(--accent-soft); box-shadow: inset 0 -3px 0 var(--accent); }
 .tl-days .is-today .dot { box-shadow: 0 0 0 4px rgba(250,168,43,.3); }
-.tl-days .sel .today-tag { background: #fff; color: var(--accent-dark); }
+.tl-days .sel .today-tag { background: #352018; color: #fff; }
 .tl-cards { display: grid; grid-template-columns: 170px 1fr; gap: 16px; padding: 16px; align-items: start; }
 .plan { position: sticky; top: 12px; margin-left: 30px; border-left: 1px solid var(--line);
         background-image: linear-gradient(var(--line) 1px, transparent 1px); background-size: 100% var(--ph); }
@@ -109,7 +116,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outlin
 .mday.has:hover { border-color: var(--accent); }
 .mday:disabled { cursor: default; color: var(--muted); }
 .mday.past { opacity: .45; }
-.mday.today { border: 2px solid #22222b; }
+.mday.today { border: 2px solid var(--text); }
 .mday.today .num { color: var(--accent-dark); }
 .mday.today .num::after { content: " auj."; font-size: .7rem; font-weight: 600; }
 .mday.sel { background: var(--accent-soft); border-color: var(--accent); }
