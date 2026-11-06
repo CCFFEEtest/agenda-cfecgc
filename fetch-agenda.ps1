@@ -1,6 +1,6 @@
 # Recupere les rendez-vous a venir de l'agenda de cfecgc-orange.org
 # et genere index.html (timeline + planning du jour + cartouches).
-# Lance 3 fois par jour (7h, 14h, 19h heure de Paris) par GitHub Actions.
+# Lance 3 fois par jour (8h, 14h, 18h heure de Paris) par GitHub Actions.
 
 $ErrorActionPreference = 'Stop'
 $source  = 'https://www.cfecgc-orange.org/evenements/'
@@ -93,8 +93,8 @@ $eventsHtml = @"
 $now   = ParisNow
 $stamp = $now.ToString("dddd d MMMM yyyy '&agrave;' HH'h'mm", $fr)
 # Prochain passage planifie (7h, 14h, 19h heure de Paris, voir .github/workflows/update.yml)
-$slot = @(7, 14, 19) | Where-Object { $_ -gt $now.Hour } | Select-Object -First 1
-$next = if ($slot) { "${slot}h00" } else { 'demain 7h00' }
+$slot = @(8, 14, 18) | Where-Object { $_ -gt $now.Hour } | Select-Object -First 1
+$next = if ($slot) { "${slot}h00" } else { 'demain 8h00' }
 
 $page = @"
 <!doctype html>
