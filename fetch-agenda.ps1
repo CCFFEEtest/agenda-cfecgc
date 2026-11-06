@@ -340,7 +340,10 @@ $eventsHtml
     // Lien vers le detail ; mailto: sans target=_blank (sinon onglet vide ou rien du tout)
     function lnk(e) { return !e.u ? '' : /^mailto:/i.test(e.u) ? ' href="' + esc(e.u) + '"' : ' href="' + esc(e.u) + '" target="_blank" rel="noopener"'; }
     // Origine : site scanne (calendrier national) ou communication recue par mail (e.a)
-    function isNat(g) { return String(g || '').trim().toLowerCase() === 'calendrier national'; }
+    // Communications email : seulement l'horaire et la pastille, jamais leur libelle (formation, webinaire...)
+    // Libelles jamais affiches : "Calendrier national" (deja dans la pastille d'origine) et
+    // "Evenement externe" (n'apporte rien, la pastille "communication email" suffit)
+    function isNat(g) { var s = String(g || '').trim().toLowerCase(); return s === 'calendrier national' || /^.v.nements? externes?$/.test(s); }
     function srcTag(e) {
       return '<span class="src' + (e.a ? ' src-mail' : '') + '">' + (e.a ? 'communication email' : 'calendrier national') + '</span>'
         + (ended(e) ? '<span class="src src-end">&eacute;v&eacute;nement termin&eacute;</span>' : '');
@@ -374,7 +377,7 @@ $eventsHtml
       var tag = e.a || !e.u ? 'div' : 'a';
       return '<' + tag + ' class="ev-card' + (tag === 'div' ? ' nolink' : '') + (ended(e) ? ' ended' : '') + '" data-k="' + e.i + '" style="--ev-bd:' + e.c + '"' + (tag === 'a' ? lnk(e) : '') + '>'
         + '<span class="when">' + (noDate ? '' : '<b>' + esc(fL.format(pd(e.d))) + '</b>') + '<span>' + timeText(e) + '</span>'
-        + (e.g && !isNat(e.g) ? '<span>' + esc(e.g) + '</span>' : '') + srcTag(e) + '</span>'
+        + (!e.a && e.g && !isNat(e.g) ? '<span>' + esc(e.g) + '</span>' : '') + srcTag(e) + '</span>'
         + '<span class="ttl">' + (num ? '<span class="evn">' + num + '</span>' : '') + esc(e.t) + '</span>'
         + (e.x ? '<p>' + esc(e.x) + '</p>' : '')
         + (e.a ? '<span class="more">&rarr; voir mail (<a href="' + SUBSCRIBE + '" target="_blank" rel="noopener">s&rsquo;inscrire</a>)</span>'
@@ -441,6 +444,19 @@ $eventsHtml
     var EV = [], dates = [], sel = 0, page = 0, per = 5, selDate = null;
 
     function perPage() { return window.innerWidth < 600 ? 3 : 5; }
+    // Si au moins une date passe sur 2 lignes, toutes passent sur 2 lignes ("lun 23" / "nov") : plus regulier
+    function fitDays() {
+      daysEl.classList.remove('two');
+      var wraps = [].some.call(daysEl.querySelectorAll('.dt'), function (x) { return x.getClientRects().length > 1; });
+      daysEl.classList.toggle('two', wraps);
+    }
+    window.addEventListener('resize', fitDays);
+    // Libelle d'un jour : "lun 23" + "nov" (separes pour pouvoir passer toute la ligne sur 2 lignes)
+    function dayLabel(d) {
+      var p = fD.format(pd(d)).replace(/\./g, '').split(' ');
+      p = p.map(function (w) { return w.charAt(0).toUpperCase() + w.slice(1); }); // "Mar 10 Nov" (formats Jjj et Mmm)
+      return '<span class="dt"><span class="dw">' + esc(p.slice(0, 2).join(' ')) + '</span> <span class="dm">' + esc(p.slice(2).join(' ')) + '</span></span>';
+    }
     // Recalcule les jours affiches selon le filtre, en gardant si possible le jour choisi
     function rebuild() {
       EV = ALL.filter(AG.shown);
@@ -464,10 +480,11 @@ $eventsHtml
       slice.forEach(function (d, k) {
         var n = EV.filter(function (e) { return e.d === d; }).length;
         html += '<li class="' + (from + k === sel ? 'sel' : '') + (d === todayKey ? ' is-today' : '') + '">'
-          + '<button type="button" data-i="' + (from + k) + '"><span class="d">' + (d === todayKey ? '<i class="today-tag">Aujourd&#39;hui</i>' : '') + esc(fD.format(pd(d)).replace(/\./g, '')) + '</span>'
+          + '<button type="button" data-i="' + (from + k) + '"><span class="d">' + (d === todayKey ? '<i class="today-tag">Aujourd&#39;hui</i>' : '') + dayLabel(d) + '</span>'
           + '<span class="dot"></span><span class="n">' + (n ? n + ' rendez-vous' : 'aucun rendez-vous') + '</span></button></li>';
       });
       daysEl.innerHTML = html;
+      fitDays();
       var prev = document.getElementById('prev'), next = document.getElementById('next');
       prev.disabled = page === 0; next.disabled = page >= pages - 1;
       document.getElementById('pgPrev').textContent = page > 0 ? page + '/' + pages : '';
@@ -500,7 +517,7 @@ $eventsHtml
       plan += '</div></div>';
 
       // Colonne droite : cartouches, meme couleur que le bloc
-      var cards = list.length ? list.map(function (e) { return AG.card(e); }).join('') : '<p class="none">Aucun rendez-vous ce jour-l&agrave;.</p>';
+      var cards = list.length ? list.map(function (e) { return AG.card(e, 0, true); }).join('') : '<p class="none">Aucun rendez-vous ce jour-l&agrave;.</p>';
       document.getElementById('tlCards').innerHTML = plan + '<div class="cards">' + cards + '</div>';
     }
     // Survol : le bloc et son cartouche s'eclairent ensemble
