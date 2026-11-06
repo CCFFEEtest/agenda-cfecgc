@@ -270,6 +270,9 @@ $eventsHtml = @"
 "@
 $now   = ParisNow
 $stamp = $now.ToString("dddd d MMMM yyyy '&agrave;' HH'h'mm", $fr)
+# Version des fichiers statiques : change a chaque generation, pour que les navigateurs (Safari iPhone)
+# rechargent style.css et wip.png au lieu de garder une ancienne copie en cache
+$ver = (Get-Date).ToUniversalTime().ToString("yyyyMMddHHmm")
 # Prochain passage planifie (7h, 14h, 19h heure de Paris, voir .github/workflows/update.yml)
 $slot = @(8, 14, 18) | Where-Object { $_ -gt $now.Hour } | Select-Object -First 1
 $next = if ($slot) { "${slot}h00" } else { 'demain 8h00' }
@@ -283,7 +286,7 @@ $page = @"
 <meta http-equiv="refresh" content="900">
 <title>Agenda CFE-CGC Orange FC</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=$ver">
 <script>
   (function () {
     var t = null;
@@ -295,7 +298,7 @@ $page = @"
 </head>
 <body>
 <div class="frame">
-<div class="banner"><h1><a href="./">Agenda CFE-CGC Orange FC</a></h1><img class="wip" src="wip.png" alt="WIP : test en cours" title="Site en cours de test" width="132" height="48"><button type="button" class="bn-ico" id="themeBtn" title="Changer de th&egrave;me" aria-label="Changer de th&egrave;me"><svg class="ico-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><svg class="ico-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg></button></div>
+<div class="banner"><h1><a href="./">Agenda CFE-CGC Orange FC</a></h1><img class="wip" src="wip.png?v=$ver" alt="WIP : test en cours" title="Site en cours de test" width="132" height="48"><button type="button" class="bn-ico" id="themeBtn" title="Changer de th&egrave;me" aria-label="Changer de th&egrave;me"><svg class="ico-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><svg class="ico-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg></button></div>
 <script>
   (function () {
     var root = document.documentElement, btn = document.getElementById('themeBtn');
@@ -374,7 +377,7 @@ $eventsHtml
         + (e.g && !isNat(e.g) ? '<span>' + esc(e.g) + '</span>' : '') + srcTag(e) + '</span>'
         + '<span class="ttl">' + (num ? '<span class="evn">' + num + '</span>' : '') + esc(e.t) + '</span>'
         + (e.x ? '<p>' + esc(e.x) + '</p>' : '')
-        + (e.a ? '<span class="more">&rarr; voir mail (<a href="' + SUBSCRIBE + '" target="_blank" rel="noopener">inscrivez-vous aux communications</a>)</span>'
+        + (e.a ? '<span class="more">&rarr; voir mail (<a href="' + SUBSCRIBE + '" target="_blank" rel="noopener">s&rsquo;inscrire</a>)</span>'
                : e.u ? '<span class="more">Voir le d&eacute;tail &rarr;</span>' : '') + '</' + tag + '>';
     }
     function startH(e) { var m = /(\d{1,2})\s*h\s*(\d{2})?/i.exec(e.h || ''); return m ? +m[1] * 60 + (+(m[2] || 0)) : 0; }
@@ -622,7 +625,7 @@ $eventsHtml
       { k: 'terrain', t: '&eacute;v&eacute;nements g&eacute;olocalis&eacute;s' }, { k: 'distance', t: '&agrave; distance ou non g&eacute;olocalis&eacute;s' }
     ];
     // Icone : fleche de navigation type GPS
-    var PC = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 10.6 20.5 3.5l-7.1 17-2.3-7.6z"/></svg>';
+    var PC = '<svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 10.6 20.5 3.5l-7.1 17-2.3-7.6z"/></svg>';
     function sortT(a, b) { return a.d < b.d ? -1 : a.d > b.d ? 1 : AG.startH(a) - AG.startH(b); }
     function title(k) { for (var i = 0; i < MODES.length; i++) if (MODES[i].k === k) return MODES[i].t; return k; }
     // Liste sous la carte : un titre par jour, cartes vertes numerotees

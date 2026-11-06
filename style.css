@@ -36,7 +36,7 @@ header { margin-bottom: 16px; }
 header h2 { font-size: 1.15rem; }
 header .hrow { margin-bottom: 4px; }
 /* Stats discretes tout en haut, au-dessus de "Prochains evenements" */
-.sub { color: var(--muted); font-size: .75rem; margin-bottom: 18px; opacity: .85; }
+.sub { color: var(--muted); font-size: .75rem; line-height: 1.5; margin-bottom: 22px; padding-bottom: 14px; border-bottom: 1px dashed var(--line); opacity: .9; }
 .sub a { color: inherit; }
 a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .tl-card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
@@ -161,10 +161,10 @@ footer { margin-top: 28px; font-size: .8rem; color: var(--muted); text-align: ce
 .mdetail .cards { gap: 8px; }
 .ev-card .more a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
 /* Nom du mois cliquable : affiche tous les rendez-vous du mois sous la grille */
-.mtitle { font: inherit; color: inherit; text-transform: inherit; background: none; border: 1px solid transparent; cursor: pointer;
+.mtitle { font: inherit; color: inherit; text-transform: inherit; background: none; border: 1px solid var(--line); cursor: pointer;
           padding: 4px 12px; border-radius: 99px; transition: border-color .15s, background .15s; }
 .mtitle::after { content: " \25BE"; font-size: .8em; color: var(--muted); }
-.mtitle:hover { border-color: var(--line); }
+.mtitle:hover { border-color: var(--accent); }
 .mtitle.sel { border-color: var(--accent); background: var(--accent-soft); }
 .mtitle.sel::after { content: " \25B4"; }
 .mdetail h5 { font-size: .95rem; margin: 16px 0 8px; color: var(--text); font-weight: 700; }
@@ -234,5 +234,5 @@ footer { margin-top: 28px; font-size: .8rem; color: var(--muted); text-align: ce
 .ev-card.ended .src { color: var(--muted); background: transparent; border-color: var(--line); }
 .hspan { font-size: .85rem; font-weight: 400; color: var(--muted); margin-left: 6px; white-space: nowrap; }
 /* Logo "WIP / test in progress" dans le bandeau (wip.png) */
-.wip { margin-left: auto; height: 48px; width: auto; flex: none; transform: rotate(-3deg); filter: drop-shadow(0 2px 3px rgba(0,0,0,.25)); }
+.wip { margin-left: auto; height: 48px; width: auto; flex: none; filter: drop-shadow(0 2px 3px rgba(0,0,0,.25)); }
 @media (max-width: 600px) { .wip { height: 34px; } }
