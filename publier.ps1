@@ -27,15 +27,26 @@ if (-not (Test-Path .git)) {
     G branch -q -u origin/main
 }
 
+# Branche courante : "main" = site en ligne ; une autre (ex. "redesign") = essai envoye sur GitHub,
+# sans toucher au site (la tache GitHub ne se declenche que sur main).
+$branch = (& $git rev-parse --abbrev-ref HEAD).Trim()
+
 G add -A
 if (& $git status --porcelain) {
     & $git status --short
     G commit -q -m $Message
 }
-G pull -q --rebase origin main
-if (-not (& $git log --oneline origin/main..main)) {
-    Write-Host 'Rien a publier : GitHub est deja a jour.'
-    exit 0
+$remote = & $git ls-remote --heads origin $branch
+if ($remote) {
+    G pull -q --rebase origin $branch
+    if (-not (& $git log --oneline "origin/$branch..$branch")) {
+        Write-Host "Rien a publier : la branche $branch est deja a jour sur GitHub."
+        exit 0
+    }
 }
-G push -q origin main
-Write-Host 'Publie. Le site sera a jour dans 2 a 3 minutes : https://ccffeetest.github.io/agenda-cfecgc/'
+G push -q -u origin $branch
+if ($branch -eq 'main') {
+    Write-Host 'Publie. Le site sera a jour dans 2 a 3 minutes : https://ccffeetest.github.io/agenda-cfecgc/'
+} else {
+    Write-Host "Branche $branch envoyee sur GitHub. Le site en ligne n'a PAS change (il suit la branche main)."
+}
