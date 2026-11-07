@@ -1,17 +1,17 @@
 /* =====================================================================
-   Agenda CFE-CGC Orange FC - feuille de style
-   1. Variables (couleurs, polices, tailles, espacements, rayons, ombres)
+   Agenda public CFE-CGC Orange Fonctions Corp - feuille de style
+   1. Variables (couleurs, polices, tailles, espacements, rayons, ombres, dimensions)
    2. Theme sombre (ne redefinit que des couleurs)
-   3. Base et mise en page
-   4. Composants communs (pastilles, boutons ronds, filtres)
-   5. Timeline et planning du jour
-   6. Cartouches de rendez-vous
-   7. Vue calendrier
-   8. Carte des evenements
-   9. Etats (rendez-vous termines)
-   10. Mobile (< 600 px)
-   Theme clair par defaut ; sombre selon le systeme, ou force par le bouton
-   soleil/lune (attribut data-theme sur <html>).
+   3. Base et cadre : bandeau, recherche, onglets, deux colonnes
+   4. Composants communs (pastilles, boutons, interrupteurs, en-tete de liste)
+   5. Prochains evenements : selecteur de dates et frise horaire
+   6. Cartes d'evenements (colonne droite)
+   7. Agenda : calendrier mensuel
+   8. Carte des evenements (Leaflet)
+   9. Panneau Filtres
+   10. Tablette et mobile
+   Theme clair par defaut ; sombre selon le systeme, ou force par "Mode nuit"
+   (attribut data-theme sur <html>).
    ===================================================================== */
 
 /* ---------- 1. Variables ---------- */
@@ -19,65 +19,62 @@
   color-scheme: light;
 
   /* Couleurs du theme */
-  --bg: #f6f6f8;            /* fond de page */
-  --card: #ffffff;          /* fond des cadres */
-  --text: #16161d;          /* texte principal */
-  --muted: #555555;         /* texte secondaire */
-  --line: #e8e2d9;          /* traits et bordures */
-  --accent: #faa82b;        /* orange CFE-CGC */
-  --accent-dark: #96500d;   /* orange fonce (texte, liens) */
-  --accent-soft: #fff8ef;   /* orange tres pale (fonds) */
+  --bg: #f2f2f4;            /* fond de page */
+  --card: #ffffff;          /* fond des colonnes et des cartes */
+  --card-2: #f8f8fa;        /* fonds secondaires (survol, touches) */
+  --text: #1c1c23;          /* texte principal */
+  --muted: #5e5e6a;         /* texte secondaire */
+  --faint: #a2a2ae;         /* jours sans rendez-vous */
+  --line: #e4e0d9;          /* bordures */
+  --line-soft: #efece7;     /* lignes horaires de la frise */
+  --accent: #faa82b;        /* orange CFE-CGC (bandeau) */
+  --accent-strong: #f28c00; /* selection forte (jour du calendrier, pastilles) */
+  --accent-dark: #9a5108;   /* orange fonce (texte, liens) */
+  --accent-soft: #fff6ea;   /* orange tres pale (fonds) */
+  --accent-mid: #ffe3bd;    /* date selectionnee */
+  --ended-bg: #f5f5f7;      /* carte d'un rendez-vous termine */
+  --grey-soft: #cfcfd8;     /* rendez-vous termines, interrupteur eteint */
+  --map-attrib-bg: transparent;
+  --pill-border: color-mix(in srgb, var(--accent) 45%, transparent);
 
   /* Couleurs fixes (identiques dans les deux themes) */
-  --on-accent: #352018;     /* texte et details sur fond orange */
-  --ink: #22222b;           /* fleches rondes, cadre du jour */
-  --white: #ffffff;
-  --disabled: #c9c9d2;      /* fleches desactivees */
-  --now: #d9534f;           /* trait "maintenant" du planning */
-
-  /* Couleurs derivees (varient avec le theme) */
-  --grey-soft: #c9c9d2;     /* rendez-vous termines, interrupteur eteint */
-  --empty-day: #b8b8c2;     /* jours du calendrier sans rendez-vous */
-  --pill-border: color-mix(in srgb, var(--accent) 45%, transparent);
-  --today-ring: rgba(250,168,43,.3);
-  --map-attrib-bg: transparent;
+  --on-accent: #352018;     /* texte sur fond orange */
+  --ev-ink: #22222b;        /* texte sur les blocs pastel de la frise */
+  --white: #ffffff;  --now: #d9534f;           /* trait "maintenant" de la frise */
+  --hover-light: rgba(255,255,255,.3);
 
   /* Ombres */
-  --shadow-frame: 0 12px 36px rgba(0,0,0,.10);
-  --shadow-btn: 0 3px 10px rgba(0,0,0,.15);
-  --shadow-card: 0 6px 18px rgba(0,0,0,.12);
-  --shadow-block: 0 4px 12px rgba(0,0,0,.15);
-  --shadow-pin: 0 2px 8px rgba(0,0,0,.3);
+  --shadow-frame: 0 10px 30px rgba(0,0,0,.08);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.08);
+  --shadow-card: 0 4px 14px rgba(0,0,0,.08);
+  --shadow-pin: 0 2px 6px rgba(0,0,0,.3);
   --shadow-knob: 0 1px 3px rgba(0,0,0,.3);
   --shadow-logo: drop-shadow(0 2px 3px rgba(0,0,0,.25));
-  --hover-light: rgba(255,255,255,.18);
 
   /* Police */
-  --font: "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font: "Segoe UI", system-ui, -apple-system, sans-serif;   /* une seule police partout : titres, gras, texte */
   --fw-normal: 400;
-  --fw-semi: 600;
+  --fw-semi: 700;           /* un seul niveau de gras partout ("semi" = gras) */
   --fw-bold: 700;
   --lh-tight: 1;
   --lh-title: 1.2;
   --lh-snug: 1.3;
-  --lh-base: 1.4;
-  --lh-loose: 1.5;
+  --lh-base: 1.45;
 
   /* Tailles de texte */
-  --fs-h1: clamp(1.7rem, 5vw, 2.4rem);
-  --fs-h2: 1.15rem;         /* titres de section */
-  --fs-h3: 1.05rem;         /* nom du mois, titre des listes */
-  --fs-h5: .95rem;          /* titres des jours, numeros du calendrier */
+  --fs-h1: 1.4rem;          /* titre du bandeau */
+  --fs-h2: 1.05rem;         /* titre de la colonne droite */
+  --fs-h3: .95rem;          /* titres des jours, nom du mois */
   --fs-body: .9rem;
   --fs-body-s: .85rem;
-  --fs-note: .82rem;
-  --fs-label: .8rem;
-  --fs-meta: .78rem;
+  --fs-meta: .8rem;
   --fs-small: .75rem;
   --fs-mini: .72rem;
   --fs-pill: .7rem;
   --fs-micro: .68rem;
-  --fs-tag: .62rem;
+  --fs-count: .7rem;        /* "3 rendez-vous" : sous les dates et dans l'en-tete de la liste */
+  --fs-chip: .8rem;         /* "Mer 18 Nov" dans le selecteur (4 dates a 1200 px) */
+  --fs-tag: .6rem;
 
   /* Espacements */
   --sp-1: 2px;
@@ -90,308 +87,389 @@
   --sp-8: 16px;
   --sp-9: 20px;
   --sp-10: 24px;
-  --sp-11: 28px;
   --sp-12: 32px;
-  --sp-13: 40px;
-  --sp-14: 48px;
-  --stats-gap: 26px;        /* sous la ligne de statistiques */
-  --list-indent: 22px;      /* cartes sous le titre du jour */
-  --geo-indent: 38px;       /* icone GPS 26 px + 4 px + ecart 8 px */
+  --list-indent: 22px;      /* cartes sous le titre du jour (listes sur plusieurs jours) */
 
   /* Rayons */
-  --r-frame: 22px;
+  --r-frame: 20px;
   --r-lg: 14px;
   --r-md: 12px;
   --r-sm: 10px;
-  --r-xs: 5px;
-  --r-2xs: 3px;
+  --r-xs: 6px;
+  --r-2xs: 4px;
   --r-pill: 99px;
 
   /* Dimensions */
-  --page-max: 1100px;
-  --btn-round: 44px;        /* fleches rondes, bouton de theme */
-  --btn-round-m: 38px;
-  --icon: 22px;
-  --icon-m: 19px;
-  --icon-theme: 30px;
-  --icon-gps: 26px;
-  --dot: 12px;
-  --pin: 32px;
-  --map-h: 440px;
-  --map-h-m: 340px;
-  --day-h: 64px;
-  --day-h-m: 52px;
-  --cnt: 22px;              /* pastilles de comptage */
-  --cnt-m: 18px;
+  --page-max: 1320px;
+  --ctl-h: 36px;            /* champ de recherche et boutons du bandeau */
+  --search-w: 290px;
   --logo-h: 48px;
-  --logo-h-m: 34px;
-
-  /* Animations */
-  --ease-pop: cubic-bezier(.34,1.56,.64,1);
+  --col-gap: 20px;          /* entre les deux colonnes */
+  --cols-min-h: 640px;      /* hauteur minimale des colonnes */
+  --nav-btn: 30px;          /* boutons ronds precedent / suivant */
+  --chip-h: 62px;           /* dates du selecteur */
+  --plan-gutter: 42px;      /* graduations de la frise */
+  --day-h: 52px;            /* cases du calendrier */
+  --cnt: 20px;              /* pastilles de comptage */
+  --pin: 32px;
+  --clu: 40px;              /* regroupement de lieux */
+  --map-h: 560px;
+  --sw-w: 38px;             /* interrupteurs */
+  --sw-h: 22px;
+  --knob: 16px;
+  --chev: 28px;
+  --icon: 18px;
 }
 
 /* ---------- 2. Theme sombre ---------- */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --bg: #111116; --card: #1b1b22; --text: #f2f2f6; --muted: #9a9aab;
-    --line: #3a342c; --accent-dark: #f5b860; --accent-soft: #2b2112;
-    --grey-soft: #4a4a55; --empty-day: var(--muted); --map-attrib-bg: rgba(27,27,34,.8);
+    --bg: #111116; --card: #1b1b22; --card-2: #23232b; --text: #f2f2f6; --muted: #a3a3b2; --faint: #5f5f6c;
+    --line: #34343e; --line-soft: #2a2a33; --accent-dark: #f5b860; --accent-soft: #2b2112; --accent-mid: #4d3613;
+    --ended-bg: #17171d; --grey-soft: #4a4a55; --map-attrib-bg: rgba(27,27,34,.8);
   }
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #111116; --card: #1b1b22; --text: #f2f2f6; --muted: #9a9aab;
-  --line: #3a342c; --accent-dark: #f5b860; --accent-soft: #2b2112;
-  --grey-soft: #4a4a55; --empty-day: var(--muted); --map-attrib-bg: rgba(27,27,34,.8);
+  --bg: #111116; --card: #1b1b22; --card-2: #23232b; --text: #f2f2f6; --muted: #a3a3b2; --faint: #5f5f6c;
+  --line: #34343e; --line-soft: #2a2a33; --accent-dark: #f5b860; --accent-soft: #2b2112; --accent-mid: #4d3613;
+  --ended-bg: #17171d; --grey-soft: #4a4a55; --map-attrib-bg: rgba(27,27,34,.8);
 }
 
-/* ---------- 3. Base et mise en page ---------- */
+/* ---------- 3. Base et cadre ---------- */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: var(--font); background: var(--bg); color: var(--text); line-height: var(--lh-base);
-       padding: var(--sp-12) var(--sp-8) var(--sp-14); }
-a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+       padding: var(--sp-9) var(--sp-8) var(--sp-12); }
+button, input, select { font: inherit; color: inherit; }
+[hidden] { display: none !important; }
+a:focus-visible, button:focus-visible, select:focus-visible, [tabindex]:focus-visible {
+  outline: 2px solid var(--accent-strong); outline-offset: 2px; }
 
 .frame { max-width: var(--page-max); margin: 0 auto; background: var(--bg); border: 1px solid var(--line);
          border-radius: var(--r-frame); overflow: hidden; box-shadow: var(--shadow-frame); }
-.wrap { padding: var(--sp-10) var(--sp-11) var(--sp-11); }
 
-/* Bandeau : titre, logo WIP, bouton de theme */
-.banner { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-8);
-          background: var(--accent); color: var(--on-accent); padding: 18px var(--sp-11); }
-.banner h1 { font-size: var(--fs-h1); letter-spacing: -.02em; line-height: var(--lh-title); }
-.banner a { color: inherit; text-decoration: none; }
-.wip { margin-left: auto; height: var(--logo-h); width: auto; flex: none; filter: var(--shadow-logo); }
-.bn-ico { flex: none; display: grid; place-items: center; width: var(--btn-round); height: var(--btn-round); padding: 0;
-          border: 0; border-radius: var(--r-md); background: none; color: inherit; font: inherit; cursor: pointer;
-          transition: background .15s; }
-.bn-ico:hover { background: var(--hover-light); }
-.bn-ico svg { width: var(--icon-theme); height: var(--icon-theme); }
-.bn-ico .ico-moon, [data-theme="dark"] .bn-ico .ico-sun { display: none; }
-[data-theme="dark"] .bn-ico .ico-moon { display: block; }
+/* Bandeau : titre, logo WIP, recherche, Filtres, Mode nuit */
+.banner { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-6) var(--sp-8);
+          padding: var(--sp-6) var(--sp-10); background: var(--accent); color: var(--on-accent); }
+.banner h1 { font-size: var(--fs-h1); line-height: var(--lh-title); letter-spacing: -.01em; }
+.banner h1 a { color: inherit; text-decoration: none; }
+/* panneau "travaux" (site en test) : juste apres le titre */
+.wip { height: var(--logo-h); width: auto; flex: none; filter: var(--shadow-logo); }
+.bn-tools { margin-left: auto; display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-4); }
 
-/* En-tete : statistiques discretes, puis titre + filtres */
-header { margin-bottom: var(--sp-8); }
-.sub { color: var(--muted); font-size: var(--fs-micro); line-height: var(--lh-loose); margin-bottom: var(--stats-gap); opacity: .85; }
+.search { display: flex; align-items: center; gap: var(--sp-3); width: var(--search-w); height: var(--ctl-h);
+          padding: 0 var(--sp-3) 0 var(--sp-5); border-radius: var(--r-sm); background: var(--card); color: var(--text);
+          box-shadow: var(--shadow-sm); }
+.search:focus-within { box-shadow: 0 0 0 2px var(--on-accent); }
+.search > svg { flex: none; color: var(--muted); }
+.search input { flex: 1; min-width: 0; height: 100%; border: 0; background: none; outline: none; font-size: var(--fs-body-s); }
+.search input::placeholder { color: var(--muted); }
+.search input::-webkit-search-cancel-button { display: none; }
+.search kbd { flex: none; padding: 0 var(--sp-3); border: 1px solid var(--line); border-radius: var(--r-2xs);
+              background: var(--card-2); color: var(--muted); font: inherit; font-size: var(--fs-micro); line-height: 1.6; }
+.search .clr { flex: none; display: grid; place-items: center; width: 24px; height: 24px; border: 0; border-radius: 50%;
+               background: var(--card-2); color: var(--muted); cursor: pointer; }
+.search .clr:hover { color: var(--text); background: var(--line); }
+
+.bn-btn { display: inline-flex; align-items: center; gap: var(--sp-3); height: var(--ctl-h); padding: 0 var(--sp-6);
+          border: 0; border-radius: var(--r-sm); background: var(--card); color: var(--text); box-shadow: var(--shadow-sm);
+          font-size: var(--fs-body-s); font-weight: var(--fw-semi); cursor: pointer; transition: box-shadow .15s; }
+.bn-btn:hover { box-shadow: 0 0 0 2px var(--hover-light), var(--shadow-sm); }
+.bn-btn .fn { display: none; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.bn-btn[aria-expanded="true"] { background: var(--accent-mid); }
+/* Filtres actifs (differents des reglages par defaut) : cadre noir epais, bien visible */
+/* Filtres actifs : pastille rouge "moins" a cote du libelle (des rendez-vous sont masques) */
+.bn-btn.act .fn { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%;
+                  background: var(--now); color: var(--white); }
+.bn-theme .ico-moon, [data-theme="dark"] .bn-theme .ico-sun { display: none; }
+[data-theme="dark"] .bn-theme .ico-moon { display: block; }
+
+/* Onglets + ligne d'informations discrete (sources, derniere mise a jour) */
+.navbar { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 0 var(--sp-8); padding: 0 var(--sp-10);
+          background: var(--card); border-bottom: 1px solid var(--line); }
+.tabs { display: flex; gap: var(--sp-2); }
+.tab { display: inline-flex; align-items: center; gap: var(--sp-4); padding: var(--sp-6) var(--sp-8) calc(var(--sp-6) - 3px);
+       border: 0; border-bottom: 3px solid transparent; border-radius: var(--r-xs) var(--r-xs) 0 0; background: none;
+       color: var(--muted); font-size: var(--fs-body); font-weight: var(--fw-semi); cursor: pointer;
+       transition: color .15s, background .15s; }
+.tab:hover { color: var(--text); background: var(--card-2); }
+/* Selection franche, comme le jour choisi du calendrier : fond orange soutenu, texte fonce */
+.tab[aria-selected="true"] { color: var(--on-accent); background: var(--accent-strong); border-bottom-color: var(--accent-strong); }
+/* ligne d'infos : au-dessus des onglets, alignee a gauche */
+.sub { order: -1; flex-basis: 100%; padding: var(--sp-4) 0 3px; font-size: var(--fs-micro); color: var(--muted); }
+.sub b { font-weight: var(--fw-semi); }
 .sub a { color: inherit; }
-header h2, .recap h2 { font-size: var(--fs-h2); }
-header .hrow { margin-bottom: var(--sp-2); }
-.hrow { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--sp-4) var(--sp-8); }
-.hspan { margin-left: var(--sp-3); font-size: var(--fs-body-s); font-weight: var(--fw-normal); color: var(--muted); white-space: nowrap; }
 
-/* Sections suivantes : fine ligne pleine largeur, avec un trait orange en tete */
-.recap { position: relative; margin-top: var(--sp-13); padding-top: var(--sp-11); border-top: 1px solid var(--line); }
-.recap::before { content: ""; position: absolute; top: -2px; left: 0; width: 56px; height: 3px;
-                 border-radius: var(--r-2xs); background: var(--accent); }
-.recap .hrow { margin-bottom: var(--sp-6); }
+/* Deux colonnes : outil de navigation (40 %) / rendez-vous (60 %). La hauteur de la ligne suit la
+   colonne gauche (au moins --cols-min-h) ; la colonne droite defile seule. */
+.cols { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: var(--col-gap);
+        min-height: var(--cols-min-h); padding: var(--sp-9) var(--sp-10) var(--sp-10); }
+.col { min-width: 0; background: var(--card); border: 1px solid var(--line); border-radius: var(--r-lg); }
+.col-left { padding: var(--sp-8); }
+.col-right { position: relative; }
+.rpane { position: absolute; inset: 0; overflow-y: auto; border-radius: inherit; scroll-padding-top: 64px; }
 
-footer { margin-top: var(--sp-11); font-size: var(--fs-label); color: var(--muted); text-align: center; }
+footer { padding: 0 var(--sp-10) var(--sp-9); font-size: var(--fs-small); color: var(--muted); text-align: center; }
 
 /* ---------- 4. Composants communs ---------- */
-/* Pastilles de comptage (calendrier, carte) */
-.mday .cnt, .geo-sw .cnt { min-width: var(--cnt); height: var(--cnt); line-height: 20px; padding: 0 var(--sp-3);
-  border-radius: var(--r-pill); text-align: center; font-size: var(--fs-small); font-weight: var(--fw-semi);
-  background: var(--accent-soft); color: var(--accent-dark); border: 1px solid var(--pill-border); }
-.mday .cnt { position: absolute; right: 7px; bottom: 7px; }
-.geo-sw .cnt { min-width: 24px; }
-
-/* Pastille d'origine : "calendrier national" / "communication email" / "evenement termine" */
+/* Pastille d'origine : "Calendrier national" / "Communication email" / "evenement termine" */
 .src { display: inline-block; padding: 0 7px; border-radius: var(--r-pill); font-size: var(--fs-pill);
-       font-weight: var(--fw-normal); line-height: var(--lh-loose);
+       font-weight: var(--fw-normal); line-height: 1.55; white-space: nowrap;
        color: var(--accent-dark); background: var(--accent-soft); border: 1px solid var(--pill-border); }
 .src-end { color: var(--muted); background: transparent; border-color: var(--line); }
 
-/* Boutons ronds a fleche (timeline et calendrier) */
-.tl-arrow .ar, .mnav { display: grid; place-items: center; width: var(--btn-round); height: var(--btn-round);
-  border-radius: var(--r-pill); background: var(--white); transition: transform .15s, box-shadow .15s; }
-.tl-arrow .ar svg, .mnav svg { width: var(--icon); height: var(--icon); }
+/* Pastilles de comptage */
+.cnt { display: inline-block; min-width: var(--cnt); height: var(--cnt); padding: 0 var(--sp-3); border-radius: var(--r-pill);
+       font-size: var(--fs-small); font-weight: var(--fw-bold); line-height: var(--cnt); text-align: center;
+       background: var(--accent-strong); color: var(--on-accent); }
 
-/* Filtres par origine = cases a cocher : carre noir coche quand l'origine est affichee */
-.filters { display: flex; flex-wrap: wrap; gap: var(--sp-3); }
-.filters[hidden] { display: none; }
-.flt { display: inline-flex; align-items: center; gap: 7px; padding: var(--sp-2) 11px var(--sp-2) var(--sp-4);
-       border: 1px solid var(--line); border-radius: var(--r-pill); background: transparent; color: var(--muted);
-       font: inherit; font-size: var(--fs-meta); line-height: var(--lh-snug); cursor: pointer;
-       transition: color .15s, border-color .15s; }
-.flt::before { content: ""; flex: none; width: 13px; height: 13px; box-sizing: border-box; border-radius: var(--r-2xs);
-               border: 1.5px solid var(--text); background: transparent center / 11px 11px no-repeat; }
-.flt.on { color: var(--text); border-color: var(--muted); }
-.flt.on::before { background-color: var(--text);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 12 12%27%3E%3Cpath d=%27M2.5 6.2l2.3 2.3 4.7-5%27 fill=%27none%27 stroke=%27white%27 stroke-width=%271.8%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E"); }
-[data-theme="dark"] .flt.on::before {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 12 12%27%3E%3Cpath d=%27M2.5 6.2l2.3 2.3 4.7-5%27 fill=%27none%27 stroke=%27%23111116%27 stroke-width=%271.8%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E"); }
-.flt:hover { border-color: var(--accent); }
+/* Boutons ronds precedent / suivant (dates, mois) */
+.nav { flex: none; display: grid; place-items: center; width: var(--nav-btn); height: var(--nav-btn); padding: 0;
+       border: 1px solid var(--line); border-radius: 50%; background: var(--card); color: var(--text); cursor: pointer;
+       transition: border-color .15s, background .15s; }
+.nav:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-soft); }
+.nav:disabled { color: var(--faint); cursor: default; opacity: .6; }
 
-/* ---------- 5. Timeline et planning du jour ---------- */
-.tl-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--r-lg); overflow: hidden; }
-.tl { display: flex; align-items: stretch; border-bottom: 1px solid var(--line); }
+/* Interrupteur (Mode nuit, evenements geolocalises) */
+.sw { position: relative; flex: none; width: var(--sw-w); height: var(--sw-h); border-radius: var(--r-pill);
+      background: var(--grey-soft); transition: background .2s; }
+.knob { position: absolute; top: 3px; left: 3px; width: var(--knob); height: var(--knob); border-radius: 50%;
+        background: var(--white); box-shadow: var(--shadow-knob); transition: transform .2s; }
+[aria-checked="true"] > .sw { background: var(--accent-strong); }
+[aria-checked="true"] > .sw .knob { transform: translateX(calc(var(--sw-w) - var(--knob) - 6px)); }
 
-.tl-arrow { flex: none; width: 84px; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            gap: 5px; padding: var(--sp-7) 0; border: 0; background: none; color: var(--ink); font: inherit; cursor: pointer; }
-.tl-arrow:disabled { color: var(--disabled); cursor: default; }
-.tl-arrow .pg { font-size: var(--fs-label); font-weight: var(--fw-bold); min-height: 1em; }
-.tl-arrow .ar { border: 2px solid currentColor; }
-.tl-arrow:disabled .ar { border-color: var(--line); }
-.tl-arrow:hover:not(:disabled) .ar { transform: scale(1.06); box-shadow: var(--shadow-btn); }
-.tl-arrow .lb { font-size: var(--fs-small); color: var(--muted); }
+/* En-tete de la colonne droite (fixe pendant le defilement) */
+.rhead { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-4) var(--sp-6);
+         min-height: 56px; padding: var(--sp-5) var(--sp-8); background: var(--card); border-bottom: 1px solid var(--line); }
+.rhead h2 { display: flex; align-items: baseline; gap: var(--sp-3); flex-wrap: wrap; font-size: var(--fs-h2); line-height: var(--lh-snug); }
+/* nombre de rendez-vous : meme police que sous les dates du selecteur (.chip .cn) */
+.rhead h2 .n, .hsub { font-size: var(--fs-count); font-weight: var(--fw-normal); color: var(--muted); }
+.rhead h2 svg { align-self: center; color: var(--accent-dark); }
+.sort { margin-left: auto; display: inline-flex; align-items: center; gap: var(--sp-3); font-size: var(--fs-meta); color: var(--muted); }
+.sort select { padding: var(--sp-1) var(--sp-4); border: 1px solid var(--line); border-radius: var(--r-xs);
+               background: var(--card); color: var(--text); font-size: var(--fs-meta); cursor: pointer; }
+.lnk-btn { display: inline-flex; align-items: center; gap: var(--sp-2); padding: var(--sp-1) var(--sp-4); border: 1px solid var(--line);
+           border-radius: var(--r-pill); background: none; font-size: var(--fs-meta); color: var(--accent-dark); cursor: pointer; }
+.sort + .lnk-btn { margin-left: 0; }
+.rhead h2 + .lnk-btn { margin-left: auto; }
+.lnk-btn:hover { border-color: var(--accent); }
+.tpill { padding: 0 var(--sp-4); border-radius: var(--r-pill); background: var(--accent-mid); color: var(--accent-dark);
+         font-size: var(--fs-pill); font-weight: var(--fw-semi); line-height: 1.7; }
+.rbody { padding: var(--sp-6) var(--sp-8) var(--sp-8); }
+.empty { padding: var(--sp-6) 0; font-size: var(--fs-body); color: var(--muted); }
+.hint { margin-bottom: var(--sp-5); font-size: var(--fs-meta); color: var(--muted); }
+.dayh { margin: var(--sp-9) 0 var(--sp-4); font-size: var(--fs-h3); font-weight: var(--fw-bold); }
+.dayh:first-child { margin-top: var(--sp-1); }
+.dayh + .cards, .dayh + .places { margin-left: var(--list-indent); }   /* plusieurs jours : cartes en retrait sous leur jour */
 
-.tl-days { position: relative; flex: 1; display: grid; grid-template-columns: repeat(var(--n, 5), 1fr); list-style: none; }
-.tl-days::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 2px; background: var(--line); }
-.tl-days li { position: relative; }
-.tl-days button { width: 100%; height: 100%; display: grid; grid-template-rows: 1fr 16px 1fr; align-items: center; justify-items: center;
-                  padding: var(--sp-6) var(--sp-2); border: 0; background: none; color: var(--text); font: inherit; cursor: pointer; }
-.tl-days .d { align-self: end; padding-bottom: var(--sp-4); font-size: var(--fs-body-s); font-weight: var(--fw-bold); letter-spacing: .01em; }
-.tl-days.two .dt .dw, .tl-days.two .dt .dm { display: block; }   /* une date sur 2 lignes => toutes */
-.tl-days .dot { position: relative; z-index: 1; width: var(--dot); height: var(--dot); border-radius: 50%; background: var(--accent); }
-.tl-days .n { align-self: start; padding-top: var(--sp-4); font-size: var(--fs-meta); color: var(--muted); }
-.tl-days button:hover .dot { transform: scale(1.25); }
-.tl-days .sel button { background: var(--accent); color: var(--on-accent); }
-.tl-days .sel .dot { background: var(--on-accent); }
-.tl-days .sel .n { color: var(--on-accent); }
-.tl-days .is-today:not(.sel) button { background: var(--accent-soft); box-shadow: inset 0 -3px 0 var(--accent); }
-.tl-days .is-today .dot { box-shadow: 0 0 0 4px var(--today-ring); }
-.today-tag { display: block; width: max-content; margin-inline: auto; margin-bottom: 3px; padding: var(--sp-1) var(--sp-4);
-             border-radius: var(--r-pill); font-style: normal; font-size: var(--fs-tag); letter-spacing: .1em;
-             color: var(--card); background: var(--text); }
-.tl-days .sel .today-tag { background: var(--on-accent); color: var(--white); }
+/* ---------- 5. Prochains evenements : dates et frise horaire ---------- */
+/* Dates serrees : app.js en met autant que possible (jusqu'a 7) sans couper les libelles */
+.days { display: flex; align-items: center; gap: var(--sp-2); margin-bottom: var(--sp-8); }
+.chips { flex: 1; min-width: 0; display: grid; grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr)); gap: var(--sp-2); list-style: none; }
+.chip { width: 100%; min-height: var(--chip-h); display: flex; flex-direction: column; align-items: center; justify-content: center;
+        gap: var(--sp-1); padding: var(--sp-3) var(--sp-1); overflow: hidden; border: 1px solid transparent; border-radius: var(--r-sm);
+        background: none; cursor: pointer; transition: background .15s, border-color .15s; }
+/* Fine ligne verticale entre deux dates (au milieu de l'ecart) */
+.chips li { position: relative; }
+.chips li + li::before { content: ""; position: absolute; left: calc(-1 * var(--sp-2) / 2 - .5px); top: 18%; bottom: 18%;
+                         width: 1px; background: var(--line); }
+.chip:hover { background: var(--card-2); border-color: var(--line); }
+.chip .cd { font-size: var(--fs-chip); font-weight: var(--fw-bold); white-space: nowrap; }
+.chip .cn { font-size: var(--fs-count); color: var(--muted); white-space: nowrap; }
+.chip.sel, .chip.sel:hover { background: var(--accent-strong); border-color: var(--accent-strong); color: var(--on-accent); }
+.chip.sel .cn, .chip.sel .today-tag { color: var(--on-accent); }
+.today-tag { font-style: normal; font-size: var(--fs-tag); font-weight: var(--fw-bold); letter-spacing: .08em; text-transform: uppercase;
+             color: var(--accent-dark); }
 
-/* Planning (colonne de gauche) et cartouches (a droite) */
-.tl-cards { display: grid; grid-template-columns: 170px 1fr; gap: var(--sp-8); padding: var(--sp-8); align-items: start; }
-.plan { position: sticky; top: var(--sp-6); margin-left: 30px; border-left: 1px solid var(--line);
-        background-image: linear-gradient(var(--line) 1px, transparent 1px); background-size: 100% var(--ph); }
-.ph { position: absolute; left: -32px; transform: translateY(-50%); font-size: var(--fs-micro); color: var(--muted); }
-.ph:first-child { transform: none; }
-.pcol { position: absolute; inset: 0; }
+.planbox { padding: var(--sp-3) var(--sp-2) var(--sp-3) var(--plan-gutter); }
+.plan { position: relative; height: calc(12 * var(--hh)); border-left: 1px solid var(--line); border-bottom: 1px solid var(--line-soft);
+        background-image: linear-gradient(var(--line-soft) 1px, transparent 1px); background-size: 100% var(--hh); }
+.ph { position: absolute; left: calc(-1 * var(--plan-gutter)); width: calc(var(--plan-gutter) - var(--sp-4)); text-align: right;
+      transform: translateY(-50%); font-size: var(--fs-micro); color: var(--muted); font-variant-numeric: tabular-nums; }
 .pblk { position: absolute; display: flex; align-items: center; justify-content: center; overflow: hidden;
-        border-radius: var(--r-xs); opacity: .85; cursor: pointer; text-decoration: none;
-        transition: opacity .2s, box-shadow .2s, transform .2s var(--ease-pop); }
-.pblk.hl, .pblk:hover { opacity: 1; z-index: 2; transform: scale(1.05);
-  box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--ev-bd, currentColor), var(--shadow-block); }
-.pdur { font-size: var(--fs-micro); font-weight: var(--fw-bold); line-height: var(--lh-tight); color: var(--on-accent); white-space: nowrap; }
-.pnow { position: absolute; left: -4px; right: 0; height: 2px; background: var(--now); }
+        border-radius: var(--r-xs); background: var(--ev); color: var(--ev-ink); cursor: pointer;
+        font-size: var(--fs-mini); font-weight: var(--fw-bold); line-height: var(--lh-tight); white-space: nowrap;
+        transition: box-shadow .15s, filter .15s; }
+.pblk:hover, .pblk.hl { z-index: 2; filter: saturate(1.25) brightness(.97); box-shadow: 0 0 0 2px var(--card), 0 0 0 3px var(--muted); }
+.pblk.sel { z-index: 3; box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--accent-strong); }
+.pblk.tight { border-radius: var(--r-2xs); }
+.pblk.ended { background: var(--grey-soft); }
+.pnow { position: absolute; left: -4px; right: 0; z-index: 4; height: 2px; background: var(--now); pointer-events: none; }
+.pnow::before { content: ""; position: absolute; left: -3px; top: -3px; width: 8px; height: 8px; border-radius: 50%; background: var(--now); }
+.pnote { margin-top: var(--sp-5); font-size: var(--fs-mini); color: var(--muted); }
 
-/* ---------- 6. Cartouches de rendez-vous ---------- */
-.cards { display: grid; gap: var(--sp-5); }
-.none { padding: var(--sp-4) 0; font-size: var(--fs-body); color: var(--muted); }
-.ev-card { display: flex; flex-direction: column; gap: var(--sp-4); padding: var(--sp-7) var(--sp-8);
-           border: 1px solid var(--line); border-left: 5px solid var(--ev-bd); border-radius: var(--r-sm);
-           background: var(--card); color: var(--text); text-decoration: none;
-           transition: box-shadow .2s, transform .2s var(--ease-pop), border-left-width .2s, background-color .2s; }
-.ev-card:hover, .ev-card.hl { box-shadow: var(--shadow-card); transform: translateX(5px) scale(1.01); border-left-width: 7px;
-                              background-color: color-mix(in srgb, var(--ev-bd) 10%, var(--card)); }
-.ev-card.nolink { cursor: default; }
-.ev-card .when { display: flex; flex-wrap: wrap; gap: var(--sp-3) var(--sp-5); font-size: var(--fs-meta); color: var(--muted); }
-.ev-card .when b { color: var(--text); }
-.ev-card .ttl { font-weight: var(--fw-semi); line-height: var(--lh-snug); }
-.ev-card p { font-size: var(--fs-body-s); color: var(--muted); display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
-.ev-card .more { margin-top: auto; font-size: var(--fs-label); font-weight: var(--fw-semi); color: var(--accent-dark); }
-.ev-card .more a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+/* ---------- 6. Cartes d'evenements ---------- */
+.cards { display: grid; gap: var(--sp-4); }
+.ev { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: var(--sp-5); row-gap: var(--sp-2);
+      padding: var(--sp-5) var(--sp-6) var(--sp-5) var(--sp-7); border: 1px solid var(--line); border-left: 5px solid var(--ev);
+      border-radius: var(--r-sm); background: var(--card); cursor: pointer;
+      transition: background-color .15s, box-shadow .15s, border-color .15s; }
+.ev > * { grid-column: 1; min-width: 0; }
+.ev:hover, .ev.hl { background: color-mix(in srgb, var(--ev) 14%, var(--card)); }
+.ev.sel { border-color: var(--accent); border-left-color: var(--ev); box-shadow: 0 0 0 1px var(--accent), var(--shadow-card);
+          background: color-mix(in srgb, var(--accent) 5%, var(--card)); }
+.ev-top { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-5); font-size: var(--fs-meta); }
+.ev-time { font-weight: var(--fw-bold); font-variant-numeric: tabular-nums; }
+.ev-ttl { font-size: var(--fs-body); font-weight: var(--fw-bold); line-height: var(--lh-snug); }
+.ev-meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-6); font-size: var(--fs-meta); color: var(--muted); }
+.it { display: inline-flex; align-items: center; gap: var(--sp-2); }
+.it svg { flex: none; }
+.ev-link { margin-left: auto; font-weight: var(--fw-semi); color: var(--accent-dark); text-decoration: none; }
+a.ev-link:hover, .ev-link a:hover { text-decoration: underline; text-underline-offset: 2px; }
+.ev-link a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.ev-more { display: none; margin-top: var(--sp-2); padding-top: var(--sp-4); border-top: 1px dashed var(--line);
+           font-size: var(--fs-body-s); color: var(--muted); }
+.ev.sel .ev-more, .ev.open .ev-more { display: block; }
+.ev-chev { grid-column: 2; grid-row: 1 / span 3; align-self: center; display: grid; place-items: center;
+           width: var(--chev); height: var(--chev); border-radius: 50%; color: var(--muted); transition: transform .2s, background .15s; }
+.ev:hover .ev-chev { background: var(--card-2); }
+.ev.open .ev-chev { transform: rotate(90deg); }   /* depliee d'office (moins de 3 rendez-vous) */
+.ev.sel .ev-chev { background: var(--accent-strong); color: var(--on-accent); transform: rotate(90deg); }
 
-/* ---------- 7. Vue calendrier ---------- */
-.months { display: grid; gap: var(--sp-9); }
-.month { padding: var(--sp-8); background: var(--card); border: 1px solid var(--line); border-radius: var(--r-lg); }
-.mbar { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-6); margin-bottom: var(--sp-6); }
-.month h3 { flex: 1; font-size: var(--fs-h3); text-transform: capitalize; text-align: center; }
-.mtitle { padding: var(--sp-2) var(--sp-6); border: 1px solid var(--line); border-radius: var(--r-pill); background: none;
-          color: inherit; font: inherit; text-transform: inherit; cursor: pointer; transition: border-color .15s, background .15s; }
+/* Rendez-vous termines (heure de fin atteinte) */
+.ev.ended { --ev: var(--grey-soft); background: var(--ended-bg); color: var(--muted); }
+.ev.ended .ev-ttl, .ev.ended .ev-time { color: var(--muted); }
+.ev.ended .src { color: var(--muted); background: transparent; border-color: var(--line); }
+.ev.ended .ev-link { opacity: .75; }
+
+/* ---------- 7. Agenda : calendrier mensuel ---------- */
+.mbar { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-6); margin-bottom: var(--sp-8); }
+.mtitle { padding: var(--sp-2) var(--sp-8); border: 1px solid var(--line); border-radius: var(--r-pill); background: none;
+          font-size: var(--fs-h3); font-weight: var(--fw-bold); text-transform: capitalize; cursor: pointer;
+          transition: border-color .15s, background .15s; }
 .mtitle::after { content: " \25BE"; font-size: .8em; color: var(--muted); }
 .mtitle:hover { border-color: var(--accent); }
-.mtitle.sel { border-color: var(--accent); background: var(--accent-soft); }
-.mtitle.sel::after { content: " \25B4"; }
-.mnav { padding: 0; border: 2px solid var(--ink); color: var(--ink); cursor: pointer; }
-.mnav:hover:not(:disabled) { transform: scale(1.06); box-shadow: var(--shadow-btn); }
-.mnav:disabled { border-color: var(--line); color: var(--disabled); cursor: default; }
-
-.mgrid { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--sp-3); }
-.mhd { padding: 0 var(--sp-2) var(--sp-2); font-size: var(--fs-mini); font-weight: var(--fw-semi); color: var(--muted);
-       text-transform: uppercase; letter-spacing: .06em; }
-.mday { position: relative; height: var(--day-h); padding: var(--sp-3) var(--sp-4); border: 1px solid var(--line); border-radius: var(--r-sm);
-        background: var(--card); color: var(--text); font: inherit; text-align: left; }
-.mday .num { font-size: var(--fs-h5); font-weight: var(--fw-semi); }
-.mday.has { cursor: pointer; }
-.mday.has:hover { border-color: var(--accent); }
-.mday:disabled { cursor: default; color: var(--muted); }
-[data-theme="light"] .mday:disabled { color: var(--empty-day); }
-.mday.past { opacity: .45; }
-.mday.today { border: 2px solid var(--text); }
-.mday.today .num { color: var(--accent-dark); }
-.mday.today .num::after { content: " auj."; font-size: var(--fs-pill); font-weight: var(--fw-semi); }
-.mday.sel { background: var(--accent-soft); border-color: var(--accent); }
-
-/* Listes sous le calendrier et sous la carte : titre, un titre par jour, cartes indentees */
-.mdetail { margin-top: var(--sp-7); padding-top: var(--sp-6); border-top: 1px solid var(--line); }
-.mdetail h4 { margin-bottom: var(--sp-4); font-size: var(--fs-h3); }
-.mdetail h4::first-letter { text-transform: uppercase; }
-#carte .mdetail h4::first-letter { text-transform: none; }
-.mdetail h5 { margin: var(--sp-8) 0 var(--sp-4); font-size: var(--fs-h5); font-weight: var(--fw-bold); color: var(--text); }
-.mdetail h5::first-letter { text-transform: uppercase; }
-.mdetail h4 + h5 { margin-top: var(--sp-2); }
-.mdetail .cards { gap: var(--sp-4); }
-.mdetail h5 + .cards { margin-left: var(--list-indent); }
+.mtitle.sel, .mtitle.sel:hover { border-color: var(--accent-strong); background: var(--accent-strong); color: var(--on-accent); }
+.mtitle.sel::after { color: var(--on-accent); }
+.mgrid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--sp-4); }
+.mhd { padding-bottom: var(--sp-2); text-align: center; font-size: var(--fs-mini); font-weight: var(--fw-bold); color: var(--text); }
+/* Traits fins : verticaux entre les colonnes de jours (au milieu de l'ecart), horizontal sous Lun...Ven */
+.mgrid > * { position: relative; }
+.mgrid > :not(:nth-child(5n+1))::before { content: ""; position: absolute; width: 1px; background: var(--line);
+  left: calc(-1 * var(--sp-4) / 2 - .5px); top: calc(-1 * var(--sp-4) / 2); bottom: calc(-1 * var(--sp-4) / 2); }
+.mgrid > :nth-child(-n+5)::before { top: 0; }
+.mhd::after { content: ""; position: absolute; height: 1px; background: var(--line);
+  left: calc(-1 * var(--sp-4) / 2); right: calc(-1 * var(--sp-4) / 2); bottom: calc(-1 * var(--sp-4) / 2 - .5px); }
+.mhd:first-child::after { left: 0; }
+.mhd:nth-child(5)::after { right: 0; }
+.mday { position: relative; height: var(--day-h); border: 1px solid transparent; border-radius: var(--r-sm); background: none;
+        color: var(--faint); font-size: var(--fs-h3); font-weight: var(--fw-semi); }
+.mday.has { border-color: var(--line); background: var(--card); color: var(--text); font-weight: var(--fw-bold); cursor: pointer;
+            transition: border-color .15s, background .15s; }
+.mday.has:hover { border-color: var(--accent); background: var(--accent-soft); }
+.mday.today { border: 2px solid var(--text); color: var(--text); cursor: pointer; }
+.mday.today .num::after { content: " auj."; font-size: var(--fs-pill); font-weight: var(--fw-semi); color: var(--accent-dark); }
+.mday.past:not(.today) { opacity: .45; }
+.mday.sel, .mday.sel:hover { background: var(--accent-strong); border-color: var(--accent-strong); color: var(--on-accent); }
+.mday.sel .num::after { color: var(--on-accent); }
+.mday .cnt { position: absolute; z-index: 2; right: -6px; bottom: -6px;   /* au-dessus des traits de separation */ box-shadow: 0 0 0 2px var(--card); }
+.mday.sel .cnt { background: var(--white); color: var(--accent-dark);
+                 box-shadow: 0 0 0 1px var(--accent-strong), 0 0 0 3px var(--card); }   /* cercle discret : pastille blanche visible sur fond blanc */
+[data-theme="dark"] .mday.sel .cnt { color: var(--on-accent); box-shadow: 0 0 0 2px var(--card); }   /* rond blanc, tour sombre, sans orange */   /* mode nuit : chiffre fonce sur pastille blanche */
+.mhint { margin-top: var(--sp-8); font-size: var(--fs-mini); color: var(--muted); text-align: center; }
 
 /* ---------- 8. Carte des evenements (Leaflet + OpenStreetMap) ---------- */
-.mapcard { padding: var(--sp-8); background: var(--card); border: 1px solid var(--line); border-radius: var(--r-lg); }
-.mapwrap { display: flex; flex-direction: column; gap: var(--sp-6); }
-#map { height: var(--map-h); border: 1px solid var(--line); border-radius: var(--r-sm); z-index: 0; background: var(--bg); }
+/* Grille : icone | interrupteur | periode ; dessous, "a distance..." aligne sur le libelle */
+.mapbar { display: grid; grid-template-columns: auto auto minmax(0, 1fr); align-items: center; gap: var(--sp-1) var(--sp-4);
+          margin-bottom: var(--sp-6); }
+.gps { display: grid; place-items: center; color: var(--accent-dark); }
+.geo-sw { display: inline-flex; align-items: center; gap: var(--sp-4); padding: var(--sp-2) 0; border: 0; background: none;
+          font-size: var(--fs-body-s); cursor: pointer; }
+.geo-sw[aria-checked="false"] .lbl { color: var(--muted); }
+.geo-sw:focus-visible .sw { outline: 2px solid var(--accent-strong); outline-offset: 2px; }
+.geo-off { grid-column: 2 / -1; font-size: var(--fs-meta); color: var(--muted); }
+.mapspan { justify-self: end; text-align: right; white-space: nowrap; font-size: var(--fs-mini); color: var(--muted); }
+#map { height: var(--map-h); border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--bg); z-index: 0; }
 .leaflet-container { font: inherit; }
 [data-theme="dark"] #map .leaflet-tile { filter: invert(1) hue-rotate(180deg) brightness(.85) contrast(.9); }
 [data-theme="dark"] .leaflet-control-attribution { background: var(--map-attrib-bg); color: var(--muted); }
 [data-theme="dark"] .leaflet-control-attribution a { color: var(--accent-dark); }
 
-/* Pastilles des lieux */
+/* Pastilles des lieux et regroupements */
 .mpin { display: grid; place-items: center; }
-.mpin span { display: grid; place-items: center; width: var(--pin); height: var(--pin); border-radius: 50%;
-             font-weight: var(--fw-bold); font-size: var(--fs-body-s); background: var(--accent); color: var(--on-accent);
-             border: 2px solid var(--white); box-shadow: var(--shadow-pin); transition: transform .15s; cursor: pointer; }
-.mpin:hover span { transform: scale(1.12); }
+.mpin span { display: grid; place-items: center; width: var(--pin); height: var(--pin); border-radius: 50%; cursor: pointer;
+             background: var(--accent-strong); color: var(--on-accent); border: 2px solid var(--white);
+             font-size: var(--fs-body-s); font-weight: var(--fw-bold); box-shadow: var(--shadow-pin); transition: transform .15s; }
+.mpin:hover span { transform: scale(1.1); }
 .mpin.sel span { background: var(--on-accent); color: var(--white); border-color: var(--accent); }
+.mclu span { width: var(--clu); height: var(--clu); background: var(--accent); font-size: var(--fs-body);
+             box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 35%, transparent), var(--shadow-pin); }
+.mtip { padding: var(--sp-2) var(--sp-4); border: 1px solid var(--line); border-radius: var(--r-xs); background: var(--card);
+        color: var(--text); font-size: var(--fs-meta); line-height: var(--lh-snug); box-shadow: var(--shadow-card); }
+.mtip::before { display: none; }
 
-/* Au-dessus de la carte : icone GPS, "evenements geolocalises" + interrupteur */
-.mvirt { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-4); }
-.mvirt .pc { display: grid; place-items: center; margin-right: var(--sp-2); color: var(--accent-dark); }
-.mvirt .pc svg { width: var(--icon-gps); height: var(--icon-gps); }
-.geo-sw { display: inline-flex; align-items: center; gap: var(--sp-5); padding: var(--sp-2) 0; border: 0; background: none;
-          color: var(--text); font: inherit; font-size: var(--fs-body); cursor: pointer; }
-.geo-sw .sw { position: relative; flex: none; width: 42px; height: var(--sp-10); border-radius: var(--r-pill);
-              background: var(--grey-soft); transition: background .2s; }
-.geo-sw .knob { position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: var(--white);
-                box-shadow: var(--shadow-knob); transition: transform .2s; }
-.geo-sw.on .sw { background: var(--accent); }
-.geo-sw.on .knob { transform: translateX(18px); }
-.geo-sw:not(.on) .lbl { color: var(--muted); }
-.geo-sw:focus-visible .sw { outline: 2px solid var(--accent); outline-offset: 2px; }
-/* "a distance ou non geolocalises" : sur sa propre ligne, aligne sous le libelle */
-.geo-off { flex-basis: 100%; margin-top: -6px; padding-left: var(--geo-indent); font-size: var(--fs-note); color: var(--muted); }
+/* Liste des lieux (colonne droite) */
+.places { display: grid; gap: var(--sp-3); list-style: none; }
+.place-row { width: 100%; display: flex; align-items: center; gap: var(--sp-5); padding: var(--sp-4) var(--sp-5);
+             border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--card); text-align: left; cursor: pointer;
+             transition: border-color .15s, background .15s; }
+.place-row:hover { border-color: var(--accent); background: var(--accent-soft); }
+.place-row .pi { display: grid; place-items: center; color: var(--accent-dark); }
+.place-row .pn { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.place-row .pn b { font-size: var(--fs-body-s); }
+.place-row .pn small { font-size: var(--fs-mini); color: var(--muted); }
+.place-row > svg { color: var(--muted); }
+.place-row.off { margin-top: var(--sp-6); border-style: dashed; }
+.place-row.off .cnt { background: var(--grey-soft); color: var(--text); }
 
-/* ---------- 9. Etats : rendez-vous termines (heure de fin atteinte) ---------- */
-.ev-card.ended { --ev-bd: var(--grey-soft) !important; color: var(--muted); background: var(--bg); }
-.ev-card.ended .ttl, .ev-card.ended .when b { color: var(--muted); }
-.ev-card.ended p, .ev-card.ended .more { opacity: .7; }
-.ev-card.ended .src { color: var(--muted); background: transparent; border-color: var(--line); }
-.pblk.ended { background: var(--grey-soft) !important; --ev-bd: var(--grey-soft) !important; }
+/* ---------- 9. Panneau Filtres (remplace les cartes dans la colonne droite) ---------- */
+.fpanel { display: flex; flex-direction: column; min-height: 100%; }
+.xbtn { margin-left: auto; display: grid; place-items: center; width: 32px; height: 32px; border: 0; border-radius: 50%;
+        background: none; color: var(--muted); cursor: pointer; }
+.xbtn:hover { background: var(--card-2); color: var(--text); }
+.fgrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-9); padding: var(--sp-9) var(--sp-8); }
+.fgrp { min-width: 0; border: 0; }
+.fgrp legend, .fgrp .lgd { display: block; margin-bottom: var(--sp-5); font-size: var(--fs-body-s); font-weight: var(--fw-bold); }
+.chk { display: flex; align-items: center; gap: var(--sp-4); padding: var(--sp-2) 0; font-size: var(--fs-body-s); cursor: pointer; }
+.chk input { flex: none; width: 16px; height: 16px; accent-color: var(--accent-strong); cursor: pointer; }
+.chk .c { color: var(--muted); }
+.chkrow { display: flex; align-items: center; gap: var(--sp-2); }
+.info { display: grid; place-items: center; width: 24px; height: 24px; border: 0; border-radius: 50%; background: none;
+        color: var(--muted); cursor: pointer; }
+.info:hover, .info[aria-expanded="true"] { color: var(--accent-dark); background: var(--accent-soft); }
+.fsel { display: flex; align-items: center; gap: var(--sp-3); padding: 0 var(--sp-4); border: 1px solid var(--line);
+        border-radius: var(--r-xs); color: var(--accent-dark); }
+.fsel select { flex: 1; min-width: 0; padding: var(--sp-3) 0; border: 0; background: none; color: var(--text);
+               font-size: var(--fs-body-s); outline: none; cursor: pointer; }
+.fsel:focus-within { border-color: var(--accent-strong); }
+.fsel select option { background: var(--card); color: var(--text); }
+.fnote { display: flex; gap: var(--sp-4); margin: 0 var(--sp-8); padding: var(--sp-5) var(--sp-6); border: 1px solid var(--pill-border);
+         border-radius: var(--r-sm); background: var(--accent-soft); font-size: var(--fs-meta); color: var(--text); }
+.fnote svg { flex: none; margin-top: 2px; color: var(--accent-dark); }
+.ffoot { position: sticky; bottom: 0; margin-top: auto; display: flex; justify-content: flex-end; gap: var(--sp-5);
+         padding: var(--sp-6) var(--sp-8); background: var(--card); border-top: 1px solid var(--line); }
+.btn { height: var(--ctl-h); padding: 0 var(--sp-8); border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--card);
+       font-size: var(--fs-body-s); font-weight: var(--fw-semi); cursor: pointer; transition: border-color .15s, background .15s; }
+.btn:hover:not(:disabled) { border-color: var(--accent-strong); background: var(--accent-soft); color: var(--accent-dark); }   /* cliquable */
+/* Survol de "Reinitialiser" (actif = des filtres existent) : fond orange, et "Appliquer" parait desactive */
+#fReset:hover:not(:disabled) { background: var(--accent-strong); border-color: var(--accent-strong); color: var(--on-accent); }
+.ffoot:has(#fReset:hover:not(:disabled)) #fApply { opacity: .4; }
+.btn-pri { border-color: var(--accent-strong); background: var(--accent-strong); color: var(--on-accent); }
+.btn-pri:hover:not(:disabled) { background: var(--accent); color: var(--on-accent); }
+.btn:disabled { opacity: .5; cursor: default; }
 
-/* ---------- 10. Mobile (< 600 px) ---------- */
+/* ---------- 10. Tablette et mobile ---------- */
+/* Tablette : colonnes empilees (outil de navigation au-dessus, rendez-vous en dessous) */
+@media (max-width: 900px) {
+  .cols { grid-template-columns: minmax(0, 1fr); min-height: 0; }
+  .rpane { position: static; overflow: visible; }
+  .rhead { position: static; }
+  .fgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+/* Mobile (< 600 px) : a affiner */
 @media (max-width: 600px) {
   body { padding: 0; }
   .frame { border: 0; border-radius: 0; box-shadow: none; }
-  .banner { padding: var(--sp-8); }
-  .wrap { padding: var(--sp-9) var(--sp-6) var(--sp-10); }
-  .wip { height: var(--logo-h-m); }
-
-  .tl-arrow { width: 52px; }
-  .tl-arrow .lb { display: none; }
-  .tl-arrow .ar { width: var(--btn-round-m); height: var(--btn-round-m); }
-  .tl-arrow .ar svg { width: var(--icon-m); height: var(--icon-m); }
-  .tl-days .d { font-size: var(--fs-mini); }
-  .tl-cards { grid-template-columns: 96px 1fr; gap: var(--sp-5); padding: var(--sp-6); }
-
-  .month { padding: var(--sp-6); }
-  .mgrid { gap: var(--sp-2); }
-  .mday { height: var(--day-h-m); padding: var(--sp-2) var(--sp-3); }
-  .mday .cnt { right: var(--sp-2); bottom: var(--sp-2); min-width: var(--cnt-m); height: var(--cnt-m); line-height: 16px;
-               font-size: var(--fs-micro); padding: 0 var(--sp-2); }
-  .mday.today .num::after { content: ""; }
-  .mdetail h5 + .cards { margin-left: var(--sp-5); }
-
-  #map { height: var(--map-h-m); }
+  .banner, .navbar { padding-left: var(--sp-6); padding-right: var(--sp-6); }
+  .bn-tools { margin-left: 0; width: 100%; }
+  .search { flex: 1; width: auto; }
+  .search kbd, .bn-theme > span:not(.sw) { display: none; }
+  .tabs { width: 100%; overflow-x: auto; }
+  .tab { flex: none; padding-inline: var(--sp-5); }
+  .cols { padding: var(--sp-6); gap: var(--sp-6); }
+  .col-left { padding: var(--sp-5); }
+  .fgrid { grid-template-columns: minmax(0, 1fr); }
+  #map { height: 360px; }
 }

@@ -1,5 +1,6 @@
 # Recupere les rendez-vous a venir de l'agenda de cfecgc-orange.org
-# et genere index.html (timeline + planning du jour + cartouches).
+# et genere index.html : les donnees (window.EVENTS) + le cadre de la page ; l'interface
+# (onglets, frise, calendrier, carte, filtres, recherche) est dans app.js, le style dans style.css.
 # Lance 3 fois par jour (8h, 14h, 18h heure de Paris) par GitHub Actions.
 # -Ajouts : fichier JSON de rendez-vous ajoutes a la main ou depuis des mails
 # (memes cles que window.EVENTS : t, d, h, g, x, u). Ignore s'il n'existe pas.
@@ -126,34 +127,129 @@ function Geo {
       $town = [string]$f.properties.city
       # Ville : le nom trouve doit figurer dans la recherche (evite "Rendez-vous de l'epargne" -> une commune au hasard)
       $ok = if ($City) { (' ' + (Norm $q) + ' ').Contains(' ' + (Norm $town) + ' ') } else { $f.properties.score -ge 0.5 }
-      if ($ok) { $res = [pscustomobject]@{ Lat = [math]::Round($f.geometry.coordinates[1], 5); Lon = [math]::Round($f.geometry.coordinates[0], 5); City = $town } }
+      # Dep : numero du departement (debut de "context", ex. "45, Loiret, Centre-Val de Loire")
+      $dep = ([string]$f.properties.context -split ',')[0].Trim()
+      if ($ok) { $res = [pscustomobject]@{ Lat = [math]::Round($f.geometry.coordinates[1], 5); Lon = [math]::Round($f.geometry.coordinates[0], 5); City = $town; Dep = $dep } }
     }
   } catch { Log "AVERTISSEMENT geocodage ($q) : $($_.Exception.Message)" }
   $geoCache[$k] = $res
   return $res
 }
+# Adresse postale ("63 rue du Rocher, 75008 Paris")
+$reAddr = '\d{1,4}\s*(bis|ter)?,?\s+(rue|avenue|av\.|boulevard|bd|place|all\u00e9e|quai|chemin|route|cours|impasse)\s[^,;|]{2,60}?,?\s\d{5}\s+[^\s,.;|]+(-[^\s,.;|]+)*'
+# Ville trouvee par son nom : on ajoute le numero de departement, ex. "Orleans (45)"
+function WithDep($name, $g) { if ($g.Dep) { "$name ($($g.Dep))" } else { $name } }
+# Zone du filtre "Lieu" (cle r), d'apres le departement : regions administratives, l'Occitanie
+# partagee entre ex-Languedoc-Roussillon (sud-est) et ex-Midi-Pyrenees (sud-ouest), les
+# Hauts-de-France au nord-est, la Corse a part ; tout autre departement (outre-mer) = hm
+# "Hors Metropole". Libelles des zones dans app.js (ZONES).
+$zoneOf = @{}
+@{ idf = '75 77 78 91 92 93 94 95'
+   no  = '14 18 22 27 28 29 35 36 37 41 44 45 49 50 53 56 61 72 76 85'
+   ne  = '02 08 10 21 25 39 51 52 54 55 57 58 59 60 62 67 68 70 71 80 88 89 90'
+   se  = '01 03 04 05 06 07 11 13 15 26 30 34 38 42 43 48 63 66 69 73 74 83 84'
+   so  = '09 12 16 17 19 23 24 31 32 33 40 46 47 64 65 79 81 82 86 87'
+   co  = '2A 2B' }.GetEnumerator() |
+  ForEach-Object { foreach ($d in $_.Value -split ' ') { $zoneOf[$d] = $_.Key } }
+# Lieu trouve : libelle, coordonnees, zone
+function Found($label, $g) {
+  $r = @{ l = $label; p = @($g.Lat, $g.Lon) }
+  if ($g.Dep) { $r.r = $(if ($zoneOf.ContainsKey($g.Dep)) { $zoneOf[$g.Dep] } else { 'hm' }) }
+  return $r
+}
 function Locate($e) {
   $txt = "$($e.Title) | $($e.Tag) | $($e.Extract)"
   foreach ($s in $sites) {
-    if ($txt -match [regex]::Escape($s.motif)) { $g = Geo $s.recherche; if ($g) { return @{ l = $s.nom; p = @($g.Lat, $g.Lon) } } }
+    if ($txt -match [regex]::Escape($s.motif)) { $g = Geo $s.recherche; if ($g) { return (Found $s.nom $g) } }
   }
-  $m = [regex]::Match($txt, '\d{1,4}\s*(bis|ter)?,?\s+(rue|avenue|av\.|boulevard|bd|place|all\u00e9e|quai|chemin|route|cours|impasse)\s[^,;|]{2,60}?,?\s\d{5}\s+[^\s,.;|]+(-[^\s,.;|]+)*', 'IgnoreCase')
-  if ($m.Success) { $g = Geo $m.Value; if ($g) { return @{ l = $m.Value; p = @($g.Lat, $g.Lon) } } }
+  $m = [regex]::Match($txt, $reAddr, 'IgnoreCase')
+  if ($m.Success) { $g = Geo $m.Value; if ($g) { return (Found $m.Value $g) } }
   $m = [regex]::Match($e.Title, '^\s*\[([^\]]{2,40})\]')
-  if ($m.Success) { $g = Geo $m.Groups[1].Value -City; if ($g) { return @{ l = $g.City; p = @($g.Lat, $g.Lon) } } }
+  if ($m.Success) { $g = Geo $m.Groups[1].Value -City; if ($g) { return (Found (WithDep $g.City $g) $g) } }
   $m = [regex]::Match($e.Title, '^\s*([^:\[\]]{2,40}?)\s*:')
-  if ($m.Success) { $g = Geo $m.Groups[1].Value -City; if ($g) { return @{ l = $m.Groups[1].Value.Trim(); p = @($g.Lat, $g.Lon) } } }
+  if ($m.Success) { $g = Geo $m.Groups[1].Value -City; if ($g) { return (Found (WithDep $m.Groups[1].Value.Trim() $g) $g) } }
   $m = [regex]::Match($txt, 'D\u00e9partement\s+(du|de la|de l[''\u2019]|des|de)\s*([^:,.;|]+)', 'IgnoreCase')
   if ($m.Success) {
     $n = Norm $m.Groups[2].Value
     $hit = $depts.Keys | Where-Object { $n -eq $_ -or $n.StartsWith("$_ ") } | Sort-Object Length -Descending | Select-Object -First 1
-    if ($hit) { $g = Geo $depts[$hit] -City; if ($g) { return @{ l = "$($g.City) (chef-lieu, $($m.Groups[2].Value.Trim()))"; p = @($g.Lat, $g.Lon) } } }
+    if ($hit) { $g = Geo $depts[$hit] -City; if ($g) { return (Found "$($g.City) (chef-lieu, $($m.Groups[2].Value.Trim()))" $g) } }
   }
   if ($txt -match '(?i)\bteams\b') { return @{ v = 'teams' } }
   if ($txt -match '(?i)webinaire|visio|en ligne|\u00e0 distance|distanciel|t\u00e9l\u00e9phone|site de vote') { return @{ v = 'distance' } }
   return @{ v = 'inconnu' }
 }
 foreach ($e in $events) { $e | Add-Member -NotePropertyName Loc -NotePropertyValue (Locate $e) -Force }
+
+# ---------- Pages detail (pour le mode de participation) ----------
+# La page d'un rendez-vous du site contient le texte complet et les liens, que la liste n'a pas :
+# "Teams : cliquez ICI", "Pour y participer : c'est ICI" (lien raccourci cfeora.org/... vers Teams
+# ou vers un fichier .ics), "Telephone au 01 88 ... Code : 964 004 706 #", "Presentiel sur le site
+# ... Salle LAB GO (4eme etage)". Un lien vers Teams, un .ics, une visio ou un outil de reservation
+# = distanciel ; avec en plus un lieu physique = hybride.
+$reRemoteUrl = '(?i)teams\.microsoft\.com|teams\.live\.com|\.ics\b|zoom\.us|webex\.com|meet\.google\.|gotomeeting|goto\.com|livestorm|whereby\.com|jitsi|bluejeans|lifesize|starleaf|skype\.com|youtube\.com|youtu\.be|vimeo\.com|dailymotion|calendly|/bookings?/|outlook\.office(365)?\.com/book|doodle\.com|framadate|eventbrite|weezevent|klaxoon|webikeo'
+$linkCache = @{}
+# Destination d'un lien (suit jusqu'a 3 redirections, sans telecharger la page d'arrivee)
+function Resolve($u) {
+  if ($linkCache.ContainsKey($u)) { return $linkCache[$u] }
+  $cur = $u
+  for ($i = 0; $i -lt 3 -and $cur -notmatch $reRemoteUrl; $i++) {
+    $loc = $null
+    try {
+      $q = [Net.HttpWebRequest]::Create($cur)
+      $q.AllowAutoRedirect = $false; $q.Timeout = 8000
+      $q.UserAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AgendaBot'
+      $resp = $q.GetResponse(); $loc = $resp.Headers['Location']; $resp.Close()
+    } catch { $loc = $null }
+    if (-not $loc) { break }
+    $cur = [string][Uri]::new([Uri]$cur, $loc)
+  }
+  $linkCache[$u] = $cur
+  return $cur
+}
+function Detail($e) {
+  $res = @{ Text = ''; Remote = $false }
+  if (-not $e.Url -or $e.Added) { return $res }
+  try {
+    $wc.Headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AgendaBot'
+    $h = $wc.DownloadString($e.Url)
+    $m = [regex]::Match($h, '(?s)<div class="single-post-grid-content">(.*?)(?:<hr class="separator"|<div class="single-post-grid-side)')
+    if (-not $m.Success) { Log "AVERTISSEMENT page detail ($($e.Url)) : contenu introuvable"; return $res }
+    $c = $m.Groups[1].Value
+    $res.Text = Clean $c
+    foreach ($a in [regex]::Matches($c, 'href="([^"]+)"')) {
+      $u = [Net.WebUtility]::HtmlDecode($a.Groups[1].Value)
+      if ($u -match $reRemoteUrl) { $res.Remote = $true; break }
+      if ($u -notmatch '^https?://' -or $u -match '^https?://(www\.)?cfecgc-orange\.org/') { continue }
+      if ((Resolve $u) -match $reRemoteUrl) { $res.Remote = $true; break }
+    }
+  } catch { Log "AVERTISSEMENT page detail ($($e.Url)) : $($_.Exception.Message)" }
+  return $res
+}
+foreach ($e in $events) { $e | Add-Member -NotePropertyName Detail -NotePropertyValue (Detail $e) -Force }
+
+# ---------- Mode de participation ----------
+# p = presentiel, d = distanciel, h = hybride (indices des deux sortes, ex. "Orange Bridge, salle O.35,
+# ou via Teams", ou "hybride"). Indices lus dans le titre, le libelle, l'extrait et la page detail.
+# Distanciel : mots (Teams, webinaire, visio, en ligne...), lien Teams / .ics / visio / reservation,
+# telephone + code de conference. Presentiel : presentiel, salle, etage, cafeteria, accueil cafe...,
+# adresse postale, site Orange connu. Rien (= "non detecte") si rien ne permet de trancher :
+# jamais "presentiel" par defaut, une simple ville ne suffit pas.
+$reRemote = '\b(teams|webinaire|webinar|visio|visioconference|en ligne|a distance|distanciel|zoom|site de vote)\b'
+$rePhone  = '\b(telephone|tel|audio|conference)\b.{0,60}?\b(code|id|pin)\b\s*\d'
+$rePhys   = '\b(presentiel|sur place|accueils? cafe|cafe gourmand|cafeteria|salle|hall|batiment|etage|rdc|salon|stand|permanence|dejeuner|petit dejeuner)\b'
+function Mode($e) {
+  $raw = "$($e.Title) | $($e.Tag) | $($e.Extract) | $($e.Detail.Text)"
+  $t = ' ' + (Norm $raw) + ' '
+  if ($t -match '\bhybride\b') { return 'h' }
+  $remote = ($t -match $reRemote) -or ($t -match $rePhone) -or $e.Detail.Remote
+  $phys = ($t -match $rePhys) -or [regex]::IsMatch($raw, $reAddr, 'IgnoreCase')
+  if (-not $phys) { foreach ($s in $sites) { if ($t.Contains(' ' + (Norm $s.motif) + ' ')) { $phys = $true; break } } }
+  if ($phys -and $remote) { return 'h' }
+  if ($phys) { return 'p' }
+  if ($remote) { return 'd' }
+  return $null
+}
+foreach ($e in $events) { $e | Add-Member -NotePropertyName Mode -NotePropertyValue (Mode $e) -Force }
 
 # ---------- Rendez-vous sur plusieurs jours ----------
 # Cherche dans le titre et la description une periode qui COMMENCE le jour du rendez-vous et finit plus tard :
@@ -236,46 +332,42 @@ function ExtraDays($e) {
 foreach ($e in $events) { $e | Add-Member -NotePropertyName Days -NotePropertyValue (ExtraDays $e) -Force }
 
 # ---------- Generation de la page ----------
-# Donnees de la timeline (rendu en JavaScript dans la page)
+# Donnees des rendez-vous (toute l'interface est rendue par app.js dans le navigateur)
 $evData = @($events | ForEach-Object {
   $o = [ordered]@{ t = $_.Title; u = $_.Url; d = $_.Date.ToString('yyyy-MM-dd'); h = $_.Time; g = $_.Tag; x = $_.Extract }
   if ($_.Added) { $o.a = 1 }
-  if ($_.Loc.p) { $o.l = $_.Loc.l; $o.p = $_.Loc.p } else { $o.v = $_.Loc.v }
+  if ($_.Loc.p) { $o.l = $_.Loc.l; $o.p = $_.Loc.p; if ($_.Loc.r) { $o.r = $_.Loc.r } } else { $o.v = $_.Loc.v }
+  if ($_.Mode) { $o.m = $_.Mode }
+  # k : texte complet de la page detail, pour la recherche seulement (intervenants, details)
+  if ($_.Detail.Text) { $o.k = $_.Detail.Text }
   if ($_.Days) { $o.j = $_.Days }
   $o
 })
 $evJson = ConvertTo-Json -InputObject $evData -Compress -Depth 3
-$eventsHtml = @"
-  <section class="tl-card">
-    <div class="tl">
-      <button type="button" class="tl-arrow" id="prev"><span class="pg" id="pgPrev"></span><span class="ar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></span><span class="lb">plus t&ocirc;t</span></button>
-      <ol class="tl-days" id="tlDays"></ol>
-      <button type="button" class="tl-arrow" id="next"><span class="pg" id="pgNext"></span><span class="ar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span><span class="lb">plus tard</span></button>
-    </div>
-    <div class="tl-cards" id="tlCards"></div>
-  </section>
-  <section class="recap" id="calendrier">
-    <div class="hrow"><h2>Vue calendrier</h2><div class="filters" role="group" aria-label="Afficher selon l&#39;origine"><button type="button" class="flt" data-f="nat" aria-pressed="true">calendrier national</button><button type="button" class="flt flt-mail" data-f="mail" aria-pressed="true">communications email</button></div></div>
-    <div class="months" id="months"></div>
-  </section>
-  <section class="recap" id="carte">
-    <div class="hrow"><h2>Carte des &eacute;v&eacute;nements <span class="hspan" id="mapSpan"></span></h2><div class="filters" role="group" aria-label="Afficher selon l&#39;origine"><button type="button" class="flt" data-f="nat" aria-pressed="true">calendrier national</button><button type="button" class="flt flt-mail" data-f="mail" aria-pressed="true">communications email</button></div></div>
-    <div class="mapcard">
-      <div class="mapwrap"><div class="mvirt" id="mapVirt" role="group" aria-label="Type de lieu"></div>
-        <div id="map" role="region" aria-label="Carte des rendez-vous par lieu"></div></div>
-      <div class="mdetail" id="mapDetail" hidden></div>
-    </div>
-  </section>
-  <script>window.EVENTS = $evJson;</script>
-"@
 $now   = ParisNow
 $stamp = $now.ToString("dddd d MMMM yyyy '&agrave;' HH'h'mm", $fr)
 # Version des fichiers statiques : change a chaque generation, pour que les navigateurs (Safari iPhone)
-# rechargent style.css et wip.png au lieu de garder une ancienne copie en cache
+# rechargent style.css, app.js et travaux.svg au lieu de garder une ancienne copie en cache
 $ver = (Get-Date).ToUniversalTime().ToString("yyyyMMddHHmm")
-# Prochain passage planifie (7h, 14h, 19h heure de Paris, voir .github/workflows/update.yml)
+# Prochain passage planifie (8h, 14h, 18h heure de Paris, voir .github/workflows/update.yml)
 $slot = @(8, 14, 18) | Where-Object { $_ -gt $now.Hour } | Select-Object -First 1
 $next = if ($slot) { "${slot}h00" } else { 'demain 8h00' }
+$nat  = $events.Count - $added
+$stats = "<b>$nat</b> rendez-vous &agrave; venir sur <a href=""$source"" target=""_blank"" rel=""noopener"">cfecgc-orange.org</a>" +
+         $(if ($added) { " + <b>$added</b> issu$(if ($added -gt 1) { 's' }) de communications email" }) + " - mis &agrave; jour $stamp"
+
+# Icones (SVG en ligne, avec width/height pour rester petites meme sans CSS)
+$svgA = 'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"'
+$icoSearch = "<svg width=""16"" height=""16"" viewBox=""0 0 24 24"" $svgA><circle cx=""11"" cy=""11"" r=""7""/><path d=""m20 20-3.5-3.5""/></svg>"
+$icoFunnel = "<svg width=""16"" height=""16"" viewBox=""0 0 24 24"" $svgA><path d=""M3 5h18l-7 8.5V19l-4 2v-7.5z""/></svg>"
+$icoSun    = "<svg class=""ico-sun"" width=""18"" height=""18"" viewBox=""0 0 24 24"" $svgA><circle cx=""12"" cy=""12"" r=""4.5""/><path d=""M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4""/></svg>"
+$icoMoon   = "<svg class=""ico-moon"" width=""18"" height=""18"" viewBox=""0 0 24 24"" $svgA><path d=""M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z""/></svg>"
+$icoList   = "<svg width=""18"" height=""18"" viewBox=""0 0 24 24"" $svgA><rect x=""3"" y=""4.5"" width=""18"" height=""16"" rx=""2.5""/><path d=""M3 9.5h18M8 2.5v4M16 2.5v4M7.5 13.5h4M7.5 17h7""/></svg>"
+$icoCal    = "<svg width=""18"" height=""18"" viewBox=""0 0 24 24"" $svgA><rect x=""3"" y=""4.5"" width=""18"" height=""16"" rx=""2.5""/><path d=""M3 9.5h18M8 2.5v4M16 2.5v4M7.5 13.5h.01M12 13.5h.01M16.5 13.5h.01M7.5 17h.01M12 17h.01""/></svg>"
+$icoPin    = "<svg width=""18"" height=""18"" viewBox=""0 0 24 24"" $svgA><path d=""M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z""/><circle cx=""12"" cy=""9.5"" r=""2.5""/></svg>"
+$icoPrev   = "<svg width=""18"" height=""18"" viewBox=""0 0 24 24"" $svgA><path d=""m15 18-6-6 6-6""/></svg>"
+$icoNext   = "<svg width=""18"" height=""18"" viewBox=""0 0 24 24"" $svgA><path d=""m9 18 6-6-6-6""/></svg>"
+$icoX      = "<svg width=""14"" height=""14"" viewBox=""0 0 24 24"" $svgA><path d=""M6 6l12 12M18 6 6 18""/></svg>"
 
 $page = @"
 <!doctype html>
@@ -283,9 +375,9 @@ $page = @"
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="refresh" content="900">
-<title>Agenda CFE-CGC Orange FC</title>
+<title>Agenda public CFE-CGC Orange Fonctions Corp</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.min.css">
 <link rel="stylesheet" href="style.css?v=$ver">
 <script>
   (function () {
@@ -298,421 +390,54 @@ $page = @"
 </head>
 <body>
 <div class="frame">
-<div class="banner"><h1><a href="./">Agenda CFE-CGC Orange FC</a></h1><img class="wip" src="wip.png?v=$ver" alt="WIP : test en cours" title="Site en cours de test" width="132" height="48"><button type="button" class="bn-ico" id="themeBtn" title="Changer de th&egrave;me" aria-label="Changer de th&egrave;me"><svg class="ico-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><svg class="ico-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/></svg></button></div>
-<script>
-  (function () {
-    var root = document.documentElement, btn = document.getElementById('themeBtn');
-    function label() {
-      var dark = root.getAttribute('data-theme') === 'dark';
-      btn.title = dark ? 'Passer en th\u00e8me clair' : 'Passer en th\u00e8me sombre';
-      btn.setAttribute('aria-label', btn.title);
-    }
-    btn.addEventListener('click', function () {
-      var t = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-      root.setAttribute('data-theme', t);
-      try { localStorage.setItem('theme', t); } catch (e) {}
-      label();
-    });
-    if (window.matchMedia) {
-      var mq = matchMedia('(prefers-color-scheme: dark)'), onSys = function (e) {
-        var saved = null;
-        try { saved = localStorage.getItem('theme'); } catch (x) {}
-        if (!saved) { root.setAttribute('data-theme', e.matches ? 'dark' : 'light'); label(); }
-      };
-      if (mq.addEventListener) mq.addEventListener('change', onSys); else if (mq.addListener) mq.addListener(onSys);
-    }
-    label();
-  })();
-</script>
-<div class="wrap">
-  <header>
-    <p class="sub">$($events.Count - $added) rendez-vous &agrave; venir sur <a href="$source" target="_blank" rel="noopener">cfecgc-orange.org</a>$(if ($added) { " + $added issu$(if ($added -gt 1) { 's' }) de communications email" }) &middot; mis &agrave; jour $stamp</p>
-    <div class="hrow"><h2>Prochains &eacute;v&eacute;nements</h2><div class="filters" role="group" aria-label="Afficher selon l&#39;origine"><button type="button" class="flt" data-f="nat" aria-pressed="true">calendrier national</button><button type="button" class="flt flt-mail" data-f="mail" aria-pressed="true">communications email</button></div></div>
+  <header class="banner">
+    <h1><a href="./">Agenda public CFE-CGC Orange<br>Fonctions Corp</a></h1>
+    <img class="wip" src="travaux.svg?v=$ver" alt="Site en travaux : test en cours" width="55" height="48">
+    <div class="bn-tools">
+      <div class="search" role="search">
+        $icoSearch
+        <input type="search" id="q" placeholder="Rechercher un &eacute;v&eacute;nement&hellip;" aria-label="Rechercher un &eacute;v&eacute;nement (titre, description, lieu, intervenant)" autocomplete="off" spellcheck="false">
+        <kbd id="qKey">Ctrl + K</kbd>
+        <button type="button" class="clr" id="qClear" aria-label="Effacer la recherche" hidden>$icoX</button>
+      </div>
+      <button type="button" class="bn-btn" id="fltBtn" aria-expanded="false" aria-controls="rpane">$icoFunnel<span>Filtres</span><span class="fn" id="fltN"></span></button>
+      <button type="button" class="bn-btn bn-theme" id="themeBtn" role="switch" aria-checked="false">$icoSun$icoMoon<span>Mode nuit</span><span class="sw" aria-hidden="true"><span class="knob"></span></span></button>
+    </div>
   </header>
-$eventsHtml
-  <script>
-  // Outils communs a la timeline et au calendrier : rendu des cartes, origine, filtre partage
-  window.AG = (function () {
-    var COLORS = ['#8fae8a', '#7fa6a6', '#8da4c9', '#a98cad', '#c98b7a'];
-    var fL = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
-    function esc(s) { var d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
-    function pd(s) { var p = s.split('-'); return new Date(+p[0], p[1] - 1, +p[2]); }
-    // Lien vers le detail ; mailto: sans target=_blank (sinon onglet vide ou rien du tout)
-    function lnk(e) { return !e.u ? '' : /^mailto:/i.test(e.u) ? ' href="' + esc(e.u) + '"' : ' href="' + esc(e.u) + '" target="_blank" rel="noopener"'; }
-    // Origine : site scanne (calendrier national) ou communication recue par mail (e.a)
-    // Communications email : seulement l'horaire et la pastille, jamais leur libelle (formation, webinaire...)
-    // Libelles jamais affiches : "Calendrier national" (deja dans la pastille d'origine) et
-    // "Evenement externe" (n'apporte rien, la pastille "communication email" suffit)
-    function isNat(g) { var s = String(g || '').trim().toLowerCase(); return s === 'calendrier national' || /^.v.nements? externes?$/.test(s); }
-    function srcTag(e) {
-      return '<span class="src' + (e.a ? ' src-mail' : '') + '">' + (e.a ? 'communication email' : 'calendrier national') + '</span>'
-        + (ended(e) ? '<span class="src src-end">&eacute;v&eacute;nement termin&eacute;</span>' : '');
-    }
-    // Horaire affiche. Plusieurs jours (e.j) : debut -> 18h00 puis "(+N jours)"
-    function timeText(e) {
-      if (!e.h) return 'Horaire non pr&eacute;cis&eacute;';
-      if (!e.j) return esc(e.h);
-      var s = /\d{1,2}\s*h\s*\d{0,2}/i.exec(e.h);
-      return (s ? esc(s[0]) + ' - 18h00' : esc(e.h)) + ' (+' + e.j + (e.j > 1 ? ' jours' : ' jour') + ')';
-    }
-    function dkey(n) { return n.getFullYear() + '-' + ('0' + (n.getMonth() + 1)).slice(-2) + '-' + ('0' + n.getDate()).slice(-2); }
-    // Termine : jour passe, ou aujourd'hui et heure de fin atteinte (sans heure de fin : heure de debut ;
-    // sans aucun horaire : fin de journee). Plusieurs jours : seulement apres le dernier jour.
-    // Recalcule a chaque affichage (la page se recharge toutes les 15 min).
-    function ended(e) {
-      var n = new Date(), k = dkey(n);
-      if (e.j) { var p = e.d.split('-'); return dkey(new Date(+p[0], p[1] - 1, +p[2] + e.j)) < k; }
-      if (e.d !== k) return e.d < k;
-      var t = (e.h || '').match(/\d{1,2}\s*h\s*\d{0,2}/gi);
-      if (!t) return false;
-      var m = /(\d{1,2})\s*h\s*(\d{0,2})/i.exec(t[t.length - 1]);
-      return n.getHours() * 60 + n.getMinutes() >= +m[1] * 60 + (+(m[2] || 0));
-    }
-    // Cartouche d'un rendez-vous (timeline et liste du jour du calendrier)
-    // Page d'abonnement aux communications (bouton "S'abonner" du site cfecgc-orange.org)
-    var SUBSCRIBE = 'https://odyssee.cfecgc-orange.org/com/page/1387';
-    // num : numero affiche devant le titre ; noDate : date omise (listes deja groupees sous le titre du jour)
-    function card(e, num, noDate) {
-      // Communication email : la carte n'est pas un lien (un lien ne peut pas en contenir un autre)
-      var tag = e.a || !e.u ? 'div' : 'a';
-      return '<' + tag + ' class="ev-card' + (tag === 'div' ? ' nolink' : '') + (ended(e) ? ' ended' : '') + '" data-k="' + e.i + '" style="--ev-bd:' + e.c + '"' + (tag === 'a' ? lnk(e) : '') + '>'
-        + '<span class="when">' + (noDate ? '' : '<b>' + esc(fL.format(pd(e.d))) + '</b>') + '<span>' + timeText(e) + '</span>'
-        + (!e.a && e.g && !isNat(e.g) ? '<span>' + esc(e.g) + '</span>' : '') + srcTag(e) + '</span>'
-        + '<span class="ttl">' + (num ? '<span class="evn">' + num + '</span>' : '') + esc(e.t) + '</span>'
-        + (e.x ? '<p>' + esc(e.x) + '</p>' : '')
-        + (e.a ? '<span class="more">&rarr; voir mail (<a href="' + SUBSCRIBE + '" target="_blank" rel="noopener">s&rsquo;inscrire</a>)</span>'
-               : e.u ? '<span class="more">Voir le d&eacute;tail &rarr;</span>' : '') + '</' + tag + '>';
-    }
-    function startH(e) { var m = /(\d{1,2})\s*h\s*(\d{2})?/i.exec(e.h || ''); return m ? +m[1] * 60 + (+(m[2] || 0)) : 0; }
-    // Couleur par ordre de debut dans la journee (meme regle partout)
-    function colorDay(list) { list.forEach(function (e, i) { e.c = COLORS[i % COLORS.length]; e.i = i; }); return list; }
-    // Listes (calendrier, carte) : toutes les cartes en vert clair, sans date (deja en titre du jour)
-    var LIST_GREEN = '#9fd19a';
-    function listCards(list, start) { return '<div class="cards">' + list.map(function (e, i) { e.c = LIST_GREEN; e.i = i; return card(e, 0, true); }).join('') + '</div>'; }
-
-    // Filtre par origine, partage par les deux sections et memorise sur l'appareil
-    var KEY = 'agFiltre', f = { nat: true, mail: true }, subs = [];
-    try { var s = JSON.parse(localStorage.getItem(KEY) || 'null'); if (s && (s.nat || s.mail)) f = { nat: !!s.nat, mail: !!s.mail }; } catch (x) {}
-    var hasMail = (window.EVENTS || []).some(function (e) { return e.a; });
-    if (!hasMail) f = { nat: true, mail: true };
-    function shown(e) { return e.a ? f.mail : f.nat; }
-    function paint() {
-      document.querySelectorAll('.filters').forEach(function (box) {
-        box.hidden = !hasMail;
-        box.querySelectorAll('[data-f]').forEach(function (b) {
-          var on = f[b.getAttribute('data-f')];
-          b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false');
-        });
-      });
-    }
-    document.addEventListener('click', function (ev) {
-      var b = ev.target.closest('.filters [data-f]'); if (!b) return;
-      var k = b.getAttribute('data-f'), n = { nat: f.nat, mail: f.mail };
-      n[k] = !n[k];
-      if (!n.nat && !n.mail) return; // au moins une origine reste affichee
-      f = n;
-      try { localStorage.setItem(KEY, JSON.stringify(f)); } catch (x) {}
-      paint(); subs.forEach(function (fn) { fn(); });
-    });
-    paint();
-    return { esc: esc, pd: pd, lnk: lnk, card: card, listCards: listCards, ended: ended, startH: startH, colorDay: colorDay, shown: shown, fL: fL,
-             onChange: function (fn) { subs.push(fn); } };
-  })();
-  </script>
-  <script>
-  // Timeline : jours ouvres avec rendez-vous (+ aujourd'hui), planning du jour et cartouches
-  (function () {
-    var ALL = window.EVENTS || [], daysEl = document.getElementById('tlDays'), AG = window.AG;
-    if (!daysEl || !ALL.length) return;
-    var esc = AG.esc, pd = AG.pd;
-    var now = new Date(), todayKey = now.getFullYear() + '-' + ('0' + (now.getMonth() + 1)).slice(-2) + '-' + ('0' + now.getDate()).slice(-2);
-    function hm(s) { var m = /(\d{1,2})\s*h\s*(\d{2})?/i.exec(s || ''); return m ? +m[1] + (+(m[2] || 0)) / 60 : null; }
-    ALL.forEach(function (e) {
-      var p = (e.h || '').split('-'); e.s = hm(p[0]); e.e = hm(p[1]);
-      if (e.j && e.s != null && e.s < 18) e.e = 18; // plusieurs jours : bloc du debut jusqu'a 18h
-      e.dur = '';
-      if (e.s != null && e.e != null && e.e > e.s) {
-        var mn = Math.round((e.e - e.s) * 60), hh = Math.floor(mn / 60), mm = mn % 60;
-        e.dur = hh ? hh + 'h' + (mm ? (mm < 10 ? '0' : '') + mm : '') : mm + 'min';
-        if (e.j) e.dur += '+'; // se poursuit les jours suivants
-      }
-      // sans horaire : valeurs de tri seulement, aucun bloc dans le planning
-      e.nt = e.s == null; if (e.nt) { e.s = 9; e.e = 10; }
-      if (e.e == null || e.e <= e.s) e.e = e.s + 1;
-    });
-    var fD = new Intl.DateTimeFormat('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
-    var EV = [], dates = [], sel = 0, page = 0, per = 5, selDate = null;
-
-    function perPage() { return window.innerWidth < 600 ? 3 : 5; }
-    // Si au moins une date passe sur 2 lignes, toutes passent sur 2 lignes ("lun 23" / "nov") : plus regulier
-    function fitDays() {
-      daysEl.classList.remove('two');
-      var wraps = [].some.call(daysEl.querySelectorAll('.dt'), function (x) { return x.getClientRects().length > 1; });
-      daysEl.classList.toggle('two', wraps);
-    }
-    window.addEventListener('resize', fitDays);
-    // Libelle d'un jour : "lun 23" + "nov" (separes pour pouvoir passer toute la ligne sur 2 lignes)
-    function dayLabel(d) {
-      var p = fD.format(pd(d)).replace(/\./g, '').split(' ');
-      p = p.map(function (w) { return w.charAt(0).toUpperCase() + w.slice(1); }); // "Mar 10 Nov" (formats Jjj et Mmm)
-      return '<span class="dt"><span class="dw">' + esc(p.slice(0, 2).join(' ')) + '</span> <span class="dm">' + esc(p.slice(2).join(' ')) + '</span></span>';
-    }
-    // Recalcule les jours affiches selon le filtre, en gardant si possible le jour choisi
-    function rebuild() {
-      EV = ALL.filter(AG.shown);
-      dates = [];
-      EV.forEach(function (e) { var w = pd(e.d).getDay(); if (w > 0 && w < 6 && dates.indexOf(e.d) < 0) dates.push(e.d); });
-      if (now.getDay() > 0 && now.getDay() < 6 && dates.indexOf(todayKey) < 0) dates.push(todayKey); // aujourd'hui toujours present
-      dates.sort();
-      var want = selDate || todayKey;
-      sel = 0;
-      for (var i = 0; i < dates.length; i++) { if (dates[i] >= want) { sel = i; break; } }
-      per = perPage(); page = Math.floor(sel / per);
-    }
-    function render() {
-      if (!dates.length) { daysEl.innerHTML = ''; document.getElementById('tlCards').innerHTML = ''; return; }
-      per = perPage();
-      var pages = Math.ceil(dates.length / per);
-      if (page > pages - 1) page = pages - 1;
-      var from = page * per, slice = dates.slice(from, from + per), html = '';
-      selDate = dates[sel];
-      daysEl.style.setProperty('--n', per);
-      slice.forEach(function (d, k) {
-        var n = EV.filter(function (e) { return e.d === d; }).length;
-        html += '<li class="' + (from + k === sel ? 'sel' : '') + (d === todayKey ? ' is-today' : '') + '">'
-          + '<button type="button" data-i="' + (from + k) + '"><span class="d">' + (d === todayKey ? '<i class="today-tag">Aujourd&#39;hui</i>' : '') + dayLabel(d) + '</span>'
-          + '<span class="dot"></span><span class="n">' + (n ? n + ' rendez-vous' : 'aucun rendez-vous') + '</span></button></li>';
-      });
-      daysEl.innerHTML = html;
-      fitDays();
-      var prev = document.getElementById('prev'), next = document.getElementById('next');
-      prev.disabled = page === 0; next.disabled = page >= pages - 1;
-      document.getElementById('pgPrev').textContent = page > 0 ? page + '/' + pages : '';
-      document.getElementById('pgNext').textContent = page < pages - 1 ? (page + 2) + '/' + pages : '';
-
-      var day = dates[sel], list = AG.colorDay(EV.filter(function (e) { return e.d === day; }).sort(function (a, b) { return a.s - b.s; }));
-
-      // Colonne gauche : planning de la journee, blocs colores sans texte
-      var H0 = 8, H1 = 19, HH = 30;
-      var timed = list.filter(function (e) { return !e.nt; }); // rendez-vous sans horaire : pas de faux creneau
-      timed.forEach(function (e) { H0 = Math.min(H0, Math.floor(e.s)); H1 = Math.max(H1, Math.ceil(e.e)); });
-      var lanes = [];
-      timed.forEach(function (e) { for (var l = 0; l < lanes.length && lanes[l] > e.s; l++); e.lane = l; lanes[l] = e.e; });
-      timed.forEach(function (e) {
-        e.n = 1 + Math.max.apply(null, timed.filter(function (o) { return o.s < e.e && o.e > e.s; }).map(function (o) { return o.lane; }));
-      });
-      var plan = '<div class="plan" style="height:' + (H1 - H0) * HH + 'px;--ph:' + HH + 'px">', h;
-      for (h = H0; h < H1; h++) plan += '<span class="ph" style="top:' + (h - H0) * HH + 'px">' + h + 'h</span>';
-      plan += '<div class="pcol">';
-      timed.forEach(function (e) {
-        var w = 100 / e.n;
-        plan += '<a class="pblk' + (AG.ended(e) ? ' ended' : '') + '" data-k="' + e.i + '"' + AG.lnk(e) + ' title="' + esc(e.t + ' - ' + (e.h || '')) + '"'
-          + ' style="background:' + e.c + ';--ev-bd:' + e.c + ';top:' + ((e.s - H0) * HH + 1) + 'px;height:' + Math.max((e.e - e.s) * HH - 2, 8) + 'px;'
-          + 'left:calc(' + (w * e.lane) + '% + 2px);width:calc(' + w + '% - 4px)">' + (e.dur ? '<span class="pdur">' + e.dur + '</span>' : '') + '</a>';
-      });
-      if (day === todayKey) {
-        var t = now.getHours() + now.getMinutes() / 60;
-        if (t > H0 && t < H1) plan += '<div class="pnow" style="top:' + (t - H0) * HH + 'px"></div>';
-      }
-      plan += '</div></div>';
-
-      // Colonne droite : cartouches, meme couleur que le bloc
-      var cards = list.length ? list.map(function (e) { return AG.card(e, 0, true); }).join('') : '<p class="none">Aucun rendez-vous ce jour-l&agrave;.</p>';
-      document.getElementById('tlCards').innerHTML = plan + '<div class="cards">' + cards + '</div>';
-    }
-    // Survol : le bloc et son cartouche s'eclairent ensemble
-    var cardsEl = document.getElementById('tlCards');
-    function hl(ev, on) {
-      var a = ev.target.closest('[data-k]'); if (!a) return;
-      cardsEl.querySelectorAll('[data-k="' + a.getAttribute('data-k') + '"]').forEach(function (x) { x.classList.toggle('hl', on); });
-    }
-    cardsEl.addEventListener('mouseover', function (ev) { hl(ev, true); });
-    cardsEl.addEventListener('mouseout', function (ev) { hl(ev, false); });
-    daysEl.addEventListener('click', function (ev) {
-      var b = ev.target.closest('button'); if (!b) return;
-      sel = +b.getAttribute('data-i'); render();
-    });
-    document.getElementById('prev').onclick = function () { page--; sel = page * per; render(); };
-    document.getElementById('next').onclick = function () { page++; sel = page * per; render(); };
-    window.addEventListener('resize', function () { if (perPage() !== per) { page = Math.floor(sel / perPage()); render(); } });
-    AG.onChange(function () { rebuild(); render(); });
-    rebuild(); render();
-  })();
-  </script>
-  <script>
-  // Calendrier mensuel : un mois a la fois, lundi-vendredi, pastille = nombre de rendez-vous affiches
-  (function () {
-    var ALL = (window.EVENTS || []).slice(), box = document.getElementById('months'), AG = window.AG;
-    if (!box) return;
-    var esc = AG.esc, fL = AG.fL;
-    function key(d) { return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
-    var now = new Date(), todayKey = key(now);
-    var byDay = {}, openKey = null; // rien d'ouvert a l'arrivee
-    function rebuild() {
-      byDay = {};
-      ALL.filter(AG.shown).forEach(function (e) { (byDay[e.d] = byDay[e.d] || []).push(e); });
-      Object.keys(byDay).forEach(function (k) { byDay[k].sort(function (a, b) { return AG.startH(a) - AG.startH(b); }); });
-    }
-    var fM = new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric' });
-    var HEAD = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven'];
-
-    // Navigation : du mois courant au mois du dernier rendez-vous connu (toutes origines)
-    var lastKey = ALL.map(function (e) { return e.d; }).sort().pop() || todayKey;
-    var maxOff = Math.max(0, (+lastKey.slice(0, 4) - now.getFullYear()) * 12 + (+lastKey.slice(5, 7) - 1 - now.getMonth()));
-    var off = 0;
-    function arrow(d) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="' + d + '"/></svg>'; }
-    var ARROW_L = arrow('M19 12H5M11 6l-6 6 6 6'), ARROW_R = arrow('M5 12h14M13 6l6 6-6 6');
-    // openKey : 'aaaa-mm-jj' = liste d'un jour, 'aaaa-mm' = liste du mois entier (clic sur le nom du mois)
-    function dayCards(k, start) { return AG.listCards((byDay[k] || []).slice(), start || 0); }
-    function dayLabel(k) { var p = k.split('-'); return esc(fL.format(new Date(+p[0], p[1] - 1, +p[2]))); }
-    function detailHtml(k) {
-      if (k.length === 7) {
-        var days = Object.keys(byDay).filter(function (x) { return x.slice(0, 7) === k; }).sort(), n = 0, c = 0;
-        days.forEach(function (x) { n += byDay[x].length; });
-        var p = k.split('-');
-        return '<h4>' + esc(fM.format(new Date(+p[0], p[1] - 1, 1))) + ' &middot; ' + n + ' rendez-vous</h4>'
-          + (days.length ? days.map(function (x) { var h = '<h5>' + dayLabel(x) + '</h5>' + dayCards(x, c); c += byDay[x].length; return h; }).join('')
-                         : '<p class="none">Aucun rendez-vous ce mois-ci.</p>');
-      }
-      return '<h4>' + dayLabel(k) + ' &middot; ' + (byDay[k] || []).length + ' rendez-vous</h4>' + dayCards(k);
-    }
-    function render() {
-      var html = '';
-      var first = new Date(now.getFullYear(), now.getMonth() + off, 1);
-      html += '<div class="month"><div class="mbar">'
-        + '<button type="button" class="mnav" data-nav="-1" aria-label="Mois pr&eacute;c&eacute;dent"' + (off <= 0 ? ' disabled' : '') + '>' + ARROW_L + '</button>'
-        + '<h3><button type="button" class="mtitle' + (openKey === key(first).slice(0, 7) ? ' sel' : '') + '" data-m="' + key(first).slice(0, 7) + '" title="Voir tous les rendez-vous du mois">'
-        + esc(fM.format(first)) + '</button></h3>'
-        + '<button type="button" class="mnav" data-nav="1" aria-label="Mois suivant"' + (off >= maxOff ? ' disabled' : '') + '>' + ARROW_R + '</button>'
-        + '</div><div class="mgrid">'
-        + HEAD.map(function (h) { return '<div class="mhd">' + h + '</div>'; }).join('');
-      // cases vides avant le premier jour ouvre du mois
-      var d = new Date(first), started = false;
-      while (d.getMonth() === first.getMonth()) {
-        var w = d.getDay();
-        if (w > 0 && w < 6) {
-          if (!started) { for (var b = 1; b < w; b++) html += '<div></div>'; started = true; }
-          var k = key(d), n = (byDay[k] || []).length;
-          var cls = 'mday' + (n ? ' has' : '') + (k < todayKey ? ' past' : '') + (k === todayKey ? ' today' : '') + (n && k === openKey ? ' sel' : '');
-          html += '<button type="button" class="' + cls + '" data-d="' + k + '"' + (n ? '' : ' disabled')
-            + ' aria-label="' + esc(fL.format(d)) + ' : ' + n + ' rendez-vous">'
-            + '<span class="num">' + d.getDate() + '</span>' + (n ? '<span class="cnt">' + n + '</span>' : '') + '</button>';
-        }
-        d.setDate(d.getDate() + 1);
-      }
-      var open = openKey && (openKey.length === 7 || byDay[openKey]) && openKey.slice(0, 7) === key(first).slice(0, 7);
-      html += '</div><div class="mdetail"' + (open ? '>' + detailHtml(openKey) : ' hidden>') + '</div></div>';
-      box.innerHTML = html;
-    }
-
-    box.addEventListener('click', function (ev) {
-      var nav = ev.target.closest('.mnav');
-      if (nav) {
-        // Changer de mois garde la liste du mois ouverte seulement si elle l'etait deja ; sinon tout se ferme
-        off = Math.min(maxOff, Math.max(0, off + +nav.getAttribute('data-nav')));
-        openKey = openKey && openKey.length === 7 ? key(new Date(now.getFullYear(), now.getMonth() + off, 1)).slice(0, 7) : null;
-        render(); return;
-      }
-      var mt = ev.target.closest('.mtitle');
-      var btn = mt || ev.target.closest('.mday.has'); if (!btn) return;
-      var k = btn.getAttribute(mt ? 'data-m' : 'data-d');
-      openKey = openKey === k ? null : k;
-      render();
-    });
-    AG.onChange(function () { rebuild(); if (openKey && openKey.length > 7 && !byDay[openKey]) openKey = null; render(); });
-    rebuild(); render();
-  })();
-  </script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-  <script>
-  // Carte : 2 modes. "actions geolocalisees" (par defaut) = une pastille par lieu avec le nombre de rendez-vous ;
-  // "a distance ou non geolocalisees" (Teams, webinaire, en ligne, sans lieu) = pastilles retirees et
-  // liste des rendez-vous correspondants sous la carte.
-  (function () {
-    var ALL = window.EVENTS || [], AG = window.AG, el = document.getElementById('map');
-    var virtEl = document.getElementById('mapVirt'), det = document.getElementById('mapDetail');
-    if (!el || !window.L || !AG) { var s = document.getElementById('carte'); if (s) s.hidden = true; return; }
-    var esc = AG.esc;
-    var map = L.map(el, { scrollWheelZoom: false, zoomSnap: 0.5 }).setView([46.6, 2.4], 5.5);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 18, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>'
-    }).addTo(map);
-    var layer = L.layerGroup().addTo(map), mode = 'terrain', pin = null, fitted = false;
-    var MODES = [
-      { k: 'terrain', t: '&eacute;v&eacute;nements g&eacute;olocalis&eacute;s' }, { k: 'distance', t: '&agrave; distance ou non g&eacute;olocalis&eacute;s' }
-    ];
-    // Icone : fleche de navigation type GPS
-    var PC = '<svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 10.6 20.5 3.5l-7.1 17-2.3-7.6z"/></svg>';
-    function sortT(a, b) { return a.d < b.d ? -1 : a.d > b.d ? 1 : AG.startH(a) - AG.startH(b); }
-    function title(k) { for (var i = 0; i < MODES.length; i++) if (MODES[i].k === k) return MODES[i].t; return k; }
-    // Liste sous la carte : un titre par jour, cartes vertes numerotees
-    function listHtml(t, list) {
-      list = list.slice().sort(sortT);
-      var days = [], c = 0;
-      list.forEach(function (e) { if (days.indexOf(e.d) < 0) days.push(e.d); });
-      return '<h4>' + t + ' &middot; ' + list.length + ' rendez-vous</h4>'
-        + days.map(function (d) {
-            var day = list.filter(function (e) { return e.d === d; });
-            var h = '<h5>' + esc(AG.fL.format(AG.pd(d))) + '</h5>' + AG.listCards(day, c);
-            c += day.length; return h;
-          }).join('');
-    }
-    var groups = {}, cat = {};
-    function render() {
-      var ev = ALL.filter(AG.shown);
-      // Periode couverte par les rendez-vous affiches, ex. (6 novembre 26 - 9 decembre 26)
-      var sp = document.getElementById('mapSpan'), ds = ev.map(function (e) { return e.d; }).sort();
-      var fS = function (d) { var p = d.split('-'); return new Date(+p[0], p[1] - 1, +p[2]).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }) + ' ' + p[0]; };
-      if (sp) sp.innerHTML = ds.length ? '(' + fS(ds[0]) + (ds[ds.length - 1] !== ds[0] ? ' &ndash; ' + fS(ds[ds.length - 1]) : '') + ')' : '';
-      groups = {}; cat = { terrain: [], distance: [] };
-      ev.forEach(function (e) {
-        if (e.p) {
-          var k = e.p.join(',');
-          (groups[k] = groups[k] || { k: k, p: e.p, l: [], list: [] }).list.push(e);
-          if (groups[k].l.indexOf(e.l) < 0) groups[k].l.push(e.l);
-          cat.terrain.push(e);
-        } else cat.distance.push(e); // Teams, webinaire, en ligne, ou lieu non identifie
-      });
-      if (pin && !groups[pin]) pin = null;
-      // Pastilles seulement en mode "Sur le terrain"
-      layer.clearLayers();
-      var pts = [];
-      if (mode === 'terrain') {
-        Object.keys(groups).forEach(function (k) {
-          var g = groups[k], n = g.list.length;
-          var icon = L.divIcon({ className: 'mpin' + (k === pin ? ' sel' : ''), html: '<span>' + n + '</span>', iconSize: [32, 32], iconAnchor: [16, 16] });
-          L.marker(g.p, { icon: icon, title: g.l.join(' / ') + ' : ' + n + ' rendez-vous', keyboard: true })
-            .on('click', function () { pin = pin === k ? null : k; render(); }).addTo(layer);
-          pts.push(g.p);
-        });
-        if (pts.length && !fitted) { map.fitBounds(pts, { padding: [30, 30], maxZoom: 9 }); fitted = true; }
-      }
-      // Icone GPS + "evenements geolocalises" + interrupteur : allume = pastilles sur la carte,
-      // eteint = pastilles retirees et liste des rendez-vous a distance ou non geolocalises
-      var on = mode === 'terrain';
-      virtEl.innerHTML = '<div class="pc">' + PC + '</div>'
-        + '<button type="button" class="geo-sw' + (on ? ' on' : '') + '" role="switch" aria-checked="' + on + '">'
-        + '<span class="lbl">&eacute;v&eacute;nements g&eacute;olocalis&eacute;s</span><span class="cnt">' + cat.terrain.length + '</span>'
-        + '<span class="sw" aria-hidden="true"><span class="knob"></span></span></button>'
-        + (on ? '' : '<span class="geo-off">&agrave; distance ou non g&eacute;olocalis&eacute;s : ' + cat.distance.length + '</span>');
-      // Liste : le lieu clique (terrain) ou toute la categorie (a distance / inconnu)
-      var html = '';
-      if (mode !== 'terrain') html = cat[mode].length ? listHtml(title(mode), cat[mode]) : '<p class="none">Aucun rendez-vous.</p>';
-      else if (pin) html = listHtml(esc(groups[pin].l.join(' / ')), groups[pin].list);
-      det.innerHTML = html; det.hidden = !html;
-    }
-    virtEl.addEventListener('click', function (ev) {
-      if (!ev.target.closest('.geo-sw')) return;
-      mode = mode === 'terrain' ? 'distance' : 'terrain';
-      pin = null; render();
-    });
-    AG.onChange(render);
-    render();
-  })();
-  </script>
-  <footer>Prochaine mise &agrave; jour vers $next &middot; les rendez-vous s'ouvrent sur le site d'origine.</footer>
+  <div class="navbar">
+    <nav class="tabs" role="tablist" aria-label="Vues de l&#39;agenda">
+      <button type="button" class="tab" role="tab" id="tab-jour" data-tab="jour" aria-controls="vJour" aria-selected="true">$icoList<span>Prochains &eacute;v&eacute;nements</span></button>
+      <button type="button" class="tab" role="tab" id="tab-cal" data-tab="cal" aria-controls="vCal" aria-selected="false" tabindex="-1">$icoCal<span>Agenda (Calendrier)</span></button>
+      <button type="button" class="tab" role="tab" id="tab-carte" data-tab="carte" aria-controls="vCarte" aria-selected="false" tabindex="-1">$icoPin<span>Carte des &eacute;v&eacute;nements</span></button>
+    </nav>
+    <p class="sub">$stats</p>
+  </div>
+  <main class="cols">
+    <section class="col col-left" aria-label="Navigation">
+      <div class="view" id="vJour" role="tabpanel" aria-labelledby="tab-jour">
+        <div class="days">
+          <button type="button" class="nav" id="prev" aria-label="Dates pr&eacute;c&eacute;dentes">$icoPrev</button>
+          <ol class="chips" id="chips"></ol>
+          <button type="button" class="nav" id="next" aria-label="Dates suivantes">$icoNext</button>
+        </div>
+        <div class="planbox" id="plan"></div>
+      </div>
+      <div class="view" id="vCal" role="tabpanel" aria-labelledby="tab-cal" hidden></div>
+      <div class="view" id="vCarte" role="tabpanel" aria-labelledby="tab-carte" hidden>
+        <div class="mapbar" id="mapBar"></div>
+        <div id="map" role="region" aria-label="Carte des rendez-vous par lieu"></div>
+      </div>
+    </section>
+    <section class="col col-right" aria-label="Rendez-vous">
+      <div class="rpane" id="rpane"></div>
+    </section>
+  </main>
+  <footer>Prochaine mise &agrave; jour des donn&eacute;es vers $next - les liens &laquo; Voir le d&eacute;tail &raquo; ouvrent le site d'origine.</footer>
 </div>
-</div>
+<script>window.EVENTS = $evJson;</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.min.js"></script>
+<script src="app.js?v=$ver"></script>
 </body>
 </html>
 "@
