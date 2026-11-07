@@ -109,6 +109,7 @@
   --tap-l: 44px;            /* boutons du panneau Filtres */
   --logo-h-m: 26px;
   --fs-h1-m: 1.05rem;       /* titre sur telephone */
+  --fs-h1sub: .82rem;       /* sous-titre "evenements publics" */
   --fs-h1-s: .92rem;        /* titre sur petit telephone */
   --badge-m: 18px;          /* pastille "filtres actifs" sur l icone */
   --plan-gutter-m: 32px;
@@ -168,6 +169,9 @@ a:focus-visible, button:focus-visible, select:focus-visible, [tabindex]:focus-vi
           padding: var(--sp-6) var(--sp-10); background: var(--accent); color: var(--on-accent); }
 .banner h1 { font-size: var(--fs-h1); line-height: var(--lh-title); letter-spacing: -.01em; }
 .banner h1 a { color: inherit; text-decoration: none; }
+/* sous-titre plus petit sous le titre */
+.banner h1 .nw { white-space: nowrap; }   /* "CFE-CGC Orange FC" jamais coupe */
+.h1sub { display: block; margin-top: var(--sp-1); font-size: var(--fs-h1sub); font-weight: var(--fw-normal); letter-spacing: 0; }
 /* panneau "travaux" (site en test) : juste apres le titre */
 .wip { display: block; height: var(--logo-h); width: auto; flex: none; filter: var(--shadow-logo); }
 /* Panneau travaux cliquable (PC) : bulle d avertissement bien visible sous le panneau */
@@ -350,8 +354,8 @@ a.ev-link:hover, .ev-link a:hover { text-decoration: underline; text-underline-o
 .ev-chev { grid-column: 2; grid-row: 1 / span 3; align-self: center; display: grid; place-items: center;
            width: var(--chev); height: var(--chev); border-radius: 50%; color: var(--muted); transition: transform .2s, background .15s; }
 .ev:hover .ev-chev { background: var(--card-2); }
-.ev.open .ev-chev { transform: rotate(90deg); }   /* depliee d'office (moins de 3 rendez-vous) */
-.ev.sel .ev-chev { background: var(--accent-strong); color: var(--on-accent); transform: rotate(90deg); }
+/* carte depliee (d office ou choisie) : chevron tourne sur fond orange, meme rendu dans les deux cas */
+.ev.open .ev-chev, .ev.sel .ev-chev { background: var(--accent-strong); color: var(--on-accent); transform: rotate(90deg); }
 
 /* Rendez-vous termines (heure de fin atteinte) */
 .ev.ended { --ev: var(--grey-soft); background: var(--ended-bg); color: var(--muted); }
@@ -484,7 +488,7 @@ a.ev-link:hover, .ev-link a:hover { text-decoration: underline; text-underline-o
   .fgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 /* Elements propres au mobile, caches sur PC : loupe, libelles courts, fond du panneau Filtres */
-#qBtn, .tab .sh, .sub .sh, .src .sh, .banner h1 .sh, .sheet-bg { display: none; }
+#qBtn, .tab .sh, .sub .sh, .src .sh, .sheet-bg { display: none; }
 
 /* Mobile (< 700 px), pense "mobile d'abord" : meme fonctionnement que sur PC, une seule colonne.
    - Barre fixe en haut (titre, loupe, Filtres, Mode nuit en icones) + ligne d'infos + 3 onglets :
@@ -505,8 +509,6 @@ a.ev-link:hover, .ev-link a:hover { text-decoration: underline; text-underline-o
                      var(--sp-4) calc(var(--sp-5) + env(safe-area-inset-left)); }
   .banner { flex-wrap: wrap; }
   .banner h1 { flex: 1 1 0; min-width: 0; font-size: var(--fs-h1-m); }   /* prend la place restante, passe a la ligne tout seul */
-  .banner h1 .lg { display: none; }   /* titre court sur 2 lignes : "Agenda public CFE-CGC" / "Orange FC" */
-  .banner h1 .sh { display: inline; }
   /* Panneau travaux = icone de la meme taille que la loupe ; le toucher deroule l avertissement sous la barre */
   .wip-btn { display: grid; place-items: center; width: var(--tap); height: var(--tap); border-radius: var(--r-sm); background: var(--card);
              box-shadow: var(--shadow-sm); cursor: pointer; }

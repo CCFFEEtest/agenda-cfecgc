@@ -378,7 +378,7 @@ $page = @"
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#faa82b">
-<title>Agenda public CFE-CGC Orange Fonctions Corp</title>
+<title>Agenda unifi&eacute; CFE-CGC Orange FC - &eacute;v&eacute;nements publics</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.min.css">
 <link rel="stylesheet" href="style.css?v=$ver">
@@ -395,7 +395,7 @@ $page = @"
 <div class="frame">
 <div class="topbar">
   <header class="banner">
-    <h1><a href="./"><span class="lg">Agenda public CFE-CGC Orange<br>Fonctions Corp</span><span class="sh">Agenda public CFE-CGC<br>Orange FC</span></a></h1>
+    <h1><a href="./">Agenda unifi&eacute; <span class="nw">CFE-CGC Orange FC</span><small class="h1sub">&eacute;v&eacute;nements publics</small></a></h1>
     <span class="wipbox"><button type="button" class="wip-btn" id="wipBtn" aria-expanded="false" aria-controls="wipTip" aria-label="Site en test : informations"><img class="wip" src="travaux.svg?v=$ver" alt="Site en travaux : test en cours" width="55" height="48"></button><span class="wip-tip" id="wipTip" role="tooltip" hidden>Version de d&eacute;monstration en cours de test ! Certains &eacute;v&eacute;nements peuvent &ecirc;tre manquants (notamment ceux diffus&eacute;s par mail)</span></span>
     <div class="bn-tools">
       <button type="button" class="bn-btn" id="qBtn" aria-label="Rechercher" aria-expanded="false" aria-controls="q">$icoSearch</button>
