@@ -356,9 +356,10 @@ $nat  = $events.Count - $added
 # Nombre d'evenements par origine. PC : "20 evenements (14 sur cfecgc-orange.org + 6 issus des emails)" ;
 # mobile : "... + 6 mails)". Une origine a 0 n'est pas citee (sans parentheses), singulier si 1.
 $tot  = $events.Count
-$site = "<a href=""$source"" target=""_blank"" rel=""noopener"">cfecgc-orange.org</a>"
+function Site($txt) { "<a href=""$source"" target=""_blank"" rel=""noopener"">$txt</a>" }
 function Plural($n) { if ($n -gt 1) { 's' } else { '' } }
-function Counts($mailTxt) {
+function Counts($mailTxt, $siteTxt) {
+  $site = Site $siteTxt
   $s = "<b>$tot</b> &eacute;v&eacute;nement$(Plural $tot)"
   if ($nat -and $added) { return "$s ($nat sur $site + $added $mailTxt)" }
   if ($added) { return "$s $mailTxt" }
@@ -367,9 +368,9 @@ function Counts($mailTxt) {
 $mailLong  = "issu$(Plural $added) des emails"
 $mailShort = $(if ($nat) { "mail$(Plural $added)" } else { "issu$(Plural $added) des mails" })
 # PC (a droite des onglets, sur 2 lignes) : "Mis a jour le 07/11/2026 a 22:25 :" / compteurs
-$stats = "Mis &agrave; jour le " + $now.ToString("dd/MM/yyyy '&agrave;' HH:mm", $fr) + " :<br>" + (Counts $mailLong)
-# Mobile (au-dessus des onglets) : compteurs courts + date
-$statsShort = (Counts $mailShort) + " - mis &agrave; jour le " + $now.ToString("dd/MM/yyyy '&agrave;' HH:mm", $fr)
+$stats = "Mis &agrave; jour le " + $now.ToString("dd/MM/yyyy '&agrave;' HH:mm", $fr) + " :<br>" + (Counts $mailLong "cfecgc-orange.org")
+# Mobile (au-dessus des onglets), court : "20 evenements (14 sur cfecgc-orange + 6 mails), maj le 07/11/26"
+$statsShort = (Counts $mailShort "cfecgc-orange") + ", m&agrave;j le " + $now.ToString("dd/MM/yy", $fr)
 
 # Icones (SVG en ligne, avec width/height pour rester petites meme sans CSS)
 $svgA = 'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"'
