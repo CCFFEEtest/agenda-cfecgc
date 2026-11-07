@@ -354,7 +354,9 @@ $slot = @(8, 14, 18) | Where-Object { $_ -gt $now.Hour } | Select-Object -First 
 $next = if ($slot) { "${slot}h00" } else { 'demain 8h00' }
 $nat  = $events.Count - $added
 $stats = "<b>$nat</b> rendez-vous &agrave; venir sur <a href=""$source"" target=""_blank"" rel=""noopener"">cfecgc-orange.org</a>" +
-         $(if ($added) { " + <b>$added</b> issu$(if ($added -gt 1) { 's' }) de communications email" }) + " - mis &agrave; jour $stamp"
+         $(if ($added) { " + <b>$added</b> issu$(if ($added -gt 1) { 's' }) de communications email" }) + " - mis &agrave; jour $stamp" 
+# Version courte pour mobile : "19 rendez-vous a venir - mis a jour le 7 nov. 2026 a 17h34"
+$statsShort = "<b>$($events.Count)</b> rendez-vous &agrave; venir - mis &agrave; jour le " + $now.ToString("d MMM yyyy '&agrave;' HH'h'mm", $fr)
 
 # Icones (SVG en ligne, avec width/height pour rester petites meme sans CSS)
 $svgA = 'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"'
@@ -374,7 +376,8 @@ $page = @"
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#faa82b">
 <title>Agenda public CFE-CGC Orange Fonctions Corp</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.min.css">
@@ -390,28 +393,31 @@ $page = @"
 </head>
 <body>
 <div class="frame">
+<div class="topbar">
   <header class="banner">
-    <h1><a href="./">Agenda public CFE-CGC Orange<br>Fonctions Corp</a></h1>
+    <h1><a href="./">Agenda public CFE-CGC Orange <br>Fonctions Corp</a></h1>
     <img class="wip" src="travaux.svg?v=$ver" alt="Site en travaux : test en cours" width="55" height="48">
     <div class="bn-tools">
+      <button type="button" class="bn-btn" id="qBtn" aria-label="Rechercher" aria-expanded="false" aria-controls="q">$icoSearch</button>
       <div class="search" role="search">
         $icoSearch
         <input type="search" id="q" placeholder="Rechercher un &eacute;v&eacute;nement&hellip;" aria-label="Rechercher un &eacute;v&eacute;nement (titre, description, lieu, intervenant)" autocomplete="off" spellcheck="false">
         <kbd id="qKey">Ctrl + K</kbd>
         <button type="button" class="clr" id="qClear" aria-label="Effacer la recherche" hidden>$icoX</button>
       </div>
-      <button type="button" class="bn-btn" id="fltBtn" aria-expanded="false" aria-controls="rpane">$icoFunnel<span>Filtres</span><span class="fn" id="fltN"></span></button>
-      <button type="button" class="bn-btn bn-theme" id="themeBtn" role="switch" aria-checked="false">$icoSun$icoMoon<span>Mode nuit</span><span class="sw" aria-hidden="true"><span class="knob"></span></span></button>
+      <button type="button" class="bn-btn" id="fltBtn" aria-expanded="false" aria-controls="rpane">$icoFunnel<span class="lbl">Filtres</span><span class="fn" id="fltN"></span></button>
+      <button type="button" class="bn-btn bn-theme" id="themeBtn" role="switch" aria-checked="false">$icoSun$icoMoon<span class="lbl">Mode nuit</span><span class="sw" aria-hidden="true"><span class="knob"></span></span></button>
     </div>
   </header>
   <div class="navbar">
     <nav class="tabs" role="tablist" aria-label="Vues de l&#39;agenda">
-      <button type="button" class="tab" role="tab" id="tab-jour" data-tab="jour" aria-controls="vJour" aria-selected="true">$icoList<span>Prochains &eacute;v&eacute;nements</span></button>
-      <button type="button" class="tab" role="tab" id="tab-cal" data-tab="cal" aria-controls="vCal" aria-selected="false" tabindex="-1">$icoCal<span>Agenda (Calendrier)</span></button>
-      <button type="button" class="tab" role="tab" id="tab-carte" data-tab="carte" aria-controls="vCarte" aria-selected="false" tabindex="-1">$icoPin<span>Carte des &eacute;v&eacute;nements</span></button>
+      <button type="button" class="tab" role="tab" id="tab-jour" data-tab="jour" aria-controls="vJour" aria-selected="true">$icoList<span class="lg">Prochains &eacute;v&eacute;nements</span><span class="sh">Prochains</span></button>
+      <button type="button" class="tab" role="tab" id="tab-cal" data-tab="cal" aria-controls="vCal" aria-selected="false" tabindex="-1">$icoCal<span class="lg">Agenda (Calendrier)</span><span class="sh">Calendrier</span></button>
+      <button type="button" class="tab" role="tab" id="tab-carte" data-tab="carte" aria-controls="vCarte" aria-selected="false" tabindex="-1">$icoPin<span class="lg">Carte des &eacute;v&eacute;nements</span><span class="sh">Carte</span></button>
     </nav>
-    <p class="sub">$stats</p>
+    <p class="sub"><span class="lg">$stats</span><span class="sh">$statsShort</span></p>
   </div>
+</div>
   <main class="cols">
     <section class="col col-left" aria-label="Navigation">
       <div class="view" id="vJour" role="tabpanel" aria-labelledby="tab-jour">

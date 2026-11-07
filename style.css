@@ -104,6 +104,20 @@
   --ctl-h: 36px;            /* champ de recherche et boutons du bandeau */
   --search-w: 290px;
   --logo-h: 48px;
+  /* Mobile */
+  --tap: 40px;              /* zones tactiles (icones de la barre, onglets) */
+  --tap-l: 44px;            /* boutons du panneau Filtres */
+  --logo-h-m: 30px;
+  --fs-h1-m: .85rem;        /* titre sur telephone */
+  --fs-h1-s: .78rem;        /* titre sur petit telephone */
+  --badge-m: 18px;          /* pastille "filtres actifs" sur l icone */
+  --plan-gutter-m: 32px;
+  --plan-col-m: .62fr;      /* largeur de la frise a cote des cartes (onglet Prochains, mobile) */
+  --day-h-m: 44px;
+  --map-h-m: 55vh;
+  --sheet-r: 18px;          /* coins du panneau Filtres qui monte du bas */
+  --shadow-sheet: 0 -8px 30px rgba(0,0,0,.25);
+  --backdrop: rgba(0,0,0,.45);
   --col-gap: 20px;          /* entre les deux colonnes */
   --cols-min-h: 640px;      /* hauteur minimale des colonnes */
   --nav-btn: 30px;          /* boutons ronds precedent / suivant */
@@ -458,18 +472,120 @@ a.ev-link:hover, .ev-link a:hover { text-decoration: underline; text-underline-o
   .rhead { position: static; }
   .fgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
-/* Mobile (< 600 px) : a affiner */
-@media (max-width: 600px) {
-  body { padding: 0; }
-  .frame { border: 0; border-radius: 0; box-shadow: none; }
-  .banner, .navbar { padding-left: var(--sp-6); padding-right: var(--sp-6); }
-  .bn-tools { margin-left: 0; width: 100%; }
-  .search { flex: 1; width: auto; }
-  .search kbd, .bn-theme > span:not(.sw) { display: none; }
-  .tabs { width: 100%; overflow-x: auto; }
-  .tab { flex: none; padding-inline: var(--sp-5); }
-  .cols { padding: var(--sp-6); gap: var(--sp-6); }
-  .col-left { padding: var(--sp-5); }
-  .fgrid { grid-template-columns: minmax(0, 1fr); }
-  #map { height: 360px; }
+/* Elements propres au mobile, caches sur PC : loupe, libelles courts, fond du panneau Filtres */
+#qBtn, .tab .sh, .sub .sh, .sheet-bg { display: none; }
+
+/* Mobile (< 700 px), pense "mobile d'abord" : meme fonctionnement que sur PC, une seule colonne.
+   - Barre fixe en haut (titre, loupe, Filtres, Mode nuit en icones) + ligne d'infos + 3 onglets :
+     seul le contenu dessous defile.
+   - Outil de l'onglet (dates + frise, calendrier, carte) puis la liste des rendez-vous dessous.
+   - Filtres : panneau qui monte du bas, boutons toujours visibles, fond assombri (toucher = fermer).
+   - iPhone / Android : zones tactiles >= 40 px, encoche et barre du bas (env(safe-area-inset-*)),
+     champ de recherche en 16 px (sinon iOS zoome), pas de surbrillance grise au toucher. */
+@media (max-width: 700px) {
+  body { padding: 0; -webkit-text-size-adjust: 100%; }
+  button, a, [tabindex] { -webkit-tap-highlight-color: transparent; }
+  .frame { border: 0; border-radius: 0; box-shadow: none; overflow: visible; }   /* sinon la barre ne reste pas collee */
+  .topbar { position: sticky; top: 0; z-index: 1100; box-shadow: var(--shadow-card); }
+
+  /* Barre orange : titre sur 2 lignes, panneau travaux, 3 icones a droite ; recherche depliee dessous */
+  .banner { flex-wrap: wrap; gap: var(--sp-3) var(--sp-3);
+            padding: calc(var(--sp-4) + env(safe-area-inset-top)) calc(var(--sp-5) + env(safe-area-inset-right))
+                     var(--sp-4) calc(var(--sp-5) + env(safe-area-inset-left)); }
+  .banner { flex-wrap: wrap; }
+  .banner h1 { flex: 1 1 0; min-width: 0; font-size: var(--fs-h1-m); }   /* prend la place restante, passe a la ligne tout seul */
+  .banner h1 br { display: none; }
+  .wip { height: var(--logo-h-m); }
+  .bn-tools { display: contents; }
+  #qBtn { display: inline-flex; }
+  .bn-btn { position: relative; justify-content: center; width: var(--tap); height: var(--tap); padding: 0; flex: none; }
+  .bn-btn svg { width: var(--icon); height: var(--icon); }
+  .bn-btn .lbl { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .bn-theme .sw { display: none; }
+  .bn-btn.act .fn { position: absolute; top: calc(-1 * var(--sp-2)); right: calc(-1 * var(--sp-2)); width: var(--badge-m); height: var(--badge-m);
+                    box-shadow: 0 0 0 2px var(--accent); }
+  .bn-btn.act .fn svg { width: 12px; height: 12px; }
+  #qBtn[aria-expanded="true"] { background: var(--accent-mid); }
+  .search { display: none; order: 10; flex-basis: 100%; width: auto; height: var(--tap); }
+  .banner.sopen .search { display: flex; }
+  .search input { font-size: 16px; }   /* 16 px minimum : sinon Safari iOS zoome sur le champ */
+  .search kbd { display: none; }
+  .search .clr { width: 32px; height: 32px; }
+
+  /* Ligne d'infos courte, puis 3 onglets de meme largeur */
+  .navbar { padding: 0 calc(var(--sp-4) + env(safe-area-inset-right)) 0 calc(var(--sp-4) + env(safe-area-inset-left)); }
+  .sub { padding: var(--sp-3) var(--sp-1) var(--sp-2); }
+  .sub .lg, .tab .lg { display: none; }
+  .sub .sh, .tab .sh { display: inline; }
+  .tabs { width: 100%; }
+  .tab { flex: 1 1 0; justify-content: center; gap: var(--sp-3); min-height: var(--tap);
+         padding: var(--sp-4) var(--sp-2) calc(var(--sp-4) - 3px); font-size: var(--fs-meta); }
+
+  /* Une colonne : outil de navigation, puis les rendez-vous */
+  .cols { padding: var(--sp-5) calc(var(--sp-4) + env(safe-area-inset-right)) var(--sp-8) calc(var(--sp-4) + env(safe-area-inset-left));
+          gap: var(--sp-5); }
+  .col-left { padding: var(--sp-5) var(--sp-4); }
+  .rhead { padding: var(--sp-4) var(--sp-5); min-height: 0; }
+  .rhead h2 { font-size: var(--fs-body); }
+  .rbody { padding: var(--sp-5) var(--sp-4) var(--sp-6); }
+  .ev, .rhead, .dayh { scroll-margin-top: calc(var(--top-h, 0px) + var(--sp-4)); }
+  .ev { padding: var(--sp-5) var(--sp-4) var(--sp-5) var(--sp-6); column-gap: var(--sp-3); }
+  .ev-link { margin-left: 0; }
+  .dayh + .cards, .dayh + .places { margin-left: var(--sp-4); }
+  footer { padding: 0 var(--sp-6) calc(var(--sp-9) + env(safe-area-inset-bottom)); }
+
+  /* Prochains evenements : boutons ronds plus grands, frise un peu plus serree a gauche */
+  .nav { width: 36px; height: 36px; }
+  .chip { min-height: 56px; }
+  .planbox { padding-left: var(--plan-gutter-m); }
+  /* Onglet Prochains : comme l ancienne version, dates sur toute la largeur puis frise a gauche et
+     cartes a droite cote a cote (vue d un coup d oeil) ; la frise reste visible quand on fait defiler */
+  body[data-tab="jour"] .cols { grid-template-columns: minmax(0, var(--plan-col-m)) minmax(0, 1fr); column-gap: var(--sp-3); row-gap: var(--sp-3); }
+  body[data-tab="jour"] .col-left, body[data-tab="jour"] #vJour { display: contents; }
+  body[data-tab="jour"] .days { grid-column: 1 / -1; margin: 0; padding: var(--sp-3) var(--sp-2); background: var(--card);
+                                border: 1px solid var(--line); border-radius: var(--r-lg); }
+  body[data-tab="jour"] .planbox { grid-column: 1; align-self: start; position: sticky; top: calc(var(--top-h, 0px) + var(--sp-3));
+                                   padding: var(--sp-4) var(--sp-2) var(--sp-4) var(--plan-gutter-m); background: var(--card);
+                                   border: 1px solid var(--line); border-radius: var(--r-lg); }
+  body[data-tab="jour"] .col-right { grid-column: 2; }
+  body[data-tab="jour"] .rbody { padding: var(--sp-3); }
+  body[data-tab="jour"] .rhead { padding: var(--sp-3); }
+  .sort { display: none; }   /* pas de "Trier par" sur telephone (place) : tri par heure */
+  .ph { left: calc(-1 * var(--plan-gutter-m)); width: calc(var(--plan-gutter-m) - var(--sp-3)); }
+
+  /* Calendrier */
+  .mgrid { gap: var(--sp-3); }
+  .mday { height: var(--day-h-m); }
+  .mday .cnt { right: -4px; bottom: -4px; min-width: 18px; height: 18px; line-height: 18px; font-size: var(--fs-micro); padding: 0 var(--sp-2); }
+  .mhint { margin-top: var(--sp-6); }
+
+  /* Carte : assez haute pour s'en servir, assez basse pour pouvoir faire defiler la page a cote */
+  #map { height: var(--map-h-m); }
+  .mapspan { grid-column: 2 / -1; justify-self: start; text-align: left; }   /* periode sous le libelle */
+
+  /* Panneau Filtres : monte du bas de l'ecran */
+  .sheet-bg { position: fixed; inset: 0; z-index: 1250; background: var(--backdrop); }
+  body.panel-open { overflow: hidden; }
+  body.panel-open .sheet-bg { display: block; }
+  .fpanel { position: fixed; left: 0; right: 0; bottom: 0; z-index: 1300; min-height: 0; max-height: 88vh; max-height: 88dvh;
+            overflow-y: auto; overscroll-behavior: contain; background: var(--card);
+            border-radius: var(--sheet-r) var(--sheet-r) 0 0; box-shadow: var(--shadow-sheet); animation: sheet-up .22s ease-out; }
+  .fpanel::before { content: ""; display: block; width: 40px; height: 4px; margin: var(--sp-4) auto 0; border-radius: var(--r-pill);
+                    background: var(--line); }
+  .fpanel .rhead { position: static; }
+  .fgrid { grid-template-columns: minmax(0, 1fr); gap: var(--sp-6); padding: var(--sp-6) var(--sp-8); }
+  .chk { padding: var(--sp-3) 0; }
+  .chk input { width: 20px; height: 20px; }
+  .fsel select { font-size: 16px; padding: var(--sp-4) 0; }
+  .fnote { margin: 0 var(--sp-8) var(--sp-4); }
+  .ffoot { flex-wrap: wrap; padding: var(--sp-5) var(--sp-8) calc(var(--sp-5) + env(safe-area-inset-bottom)); }
+  .ffoot .btn { flex: 1 1 auto; height: var(--tap-l); }
+}
+@keyframes sheet-up { from { transform: translateY(100%); } to { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .fpanel { animation: none; } }
+/* Petits telephones (iPhone SE, 320-375 px) */
+@media (max-width: 380px) {
+  .banner h1 { font-size: var(--fs-h1-s); }
+  .wip { display: none; }
+  .tab svg { display: none; }
 }

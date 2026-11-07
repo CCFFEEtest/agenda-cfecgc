@@ -182,7 +182,8 @@
   }
   function sortList(list) {
     var l = list.slice();
-    if (S.sort === 'lieu') l.sort(function (a, b) { return (a.l ? 0 : 1) - (b.l ? 0 : 1) || (a.l || '').localeCompare(b.l || '', 'fr') || byTime(a, b); });
+    // mobile : pas de choix du tri (place), toujours par heure
+    if (S.sort === 'lieu' && !MOBILE.matches) l.sort(function (a, b) { return (a.l ? 0 : 1) - (b.l ? 0 : 1) || (a.l || '').localeCompare(b.l || '', 'fr') || byTime(a, b); });
     else l.sort(byTime);
     return l;
   }
@@ -224,7 +225,17 @@
     rp.innerHTML = html;
     rp.scrollTop = 0;
     $('fltBtn').setAttribute('aria-expanded', S.panel);
+    document.body.classList.toggle('panel-open', S.panel);   // mobile : panneau du bas + fond assombri
+    // Mobile (une colonne) : si la liste a ete remplacee alors qu'on avait defile plus bas que son debut,
+    // on remonte a son titre (sous la barre fixe) au lieu de laisser l'ecran au milieu de nulle part
+    if (MOBILE.matches && !S.panel) {
+      var top = rp.getBoundingClientRect().top - topH();
+      if (top < 0) window.scrollBy(0, top - 8);
+    }
   }
+  var MOBILE = window.matchMedia('(max-width: 700px)');
+  // Hauteur de la barre fixe du haut (titre + onglets), pour ne rien cacher dessous
+  function topH() { var t = document.querySelector('.topbar'); return MOBILE.matches && t ? t.offsetHeight : 0; }
   // Selection d'un rendez-vous : bloc de la frise et carte mis en evidence ensemble, carte developpee
   function selectEvent(id, reveal) {
     S.sel = S.sel === id ? null : id;
@@ -300,6 +311,7 @@
   // d'un groupe ont la largeur du groupe. 4 px entre colonnes, 2 px entre blocs qui se suivent.
   // Plus de 5 colonnes : blocs serres, sans la duree.
   function planHtml(list, day) {
+    var HH = MOBILE.matches ? 30 : 40;   // px par heure : frise plus courte sur telephone
     var blocks = [];
     list.forEach(function (e) {
       if (e.nt) return;
@@ -554,6 +566,7 @@
   function update() { compute(); renderHeader(); renderLeft(); renderRight(); save(); }
   var tabs = document.querySelectorAll('.tab');
   function setTab(t) {
+    document.body.setAttribute("data-tab", t);   // mobile : mise en page propre a chaque onglet (CSS)
     S.tab = t;
     Array.prototype.forEach.call(tabs, function (b) {
       var on = b.getAttribute('data-tab') === t;
@@ -642,6 +655,19 @@
   qEl.value = S.q;
   qEl.addEventListener('input', function () { S.q = qEl.value; update(); });
   $('qClear').addEventListener('click', function () { S.q = qEl.value = ''; update(); qEl.focus(); });
+  // Mobile : la loupe deplie / replie le champ de recherche sous le titre (il reste ouvert si une recherche est en cours)
+  var banner = document.querySelector('.banner');
+  function searchOpen(on) {
+    banner.classList.toggle('sopen', on);
+    $('qBtn').setAttribute('aria-expanded', on);
+    syncTop();
+  }
+  $('qBtn').addEventListener('click', function () {
+    var on = !banner.classList.contains('sopen');
+    searchOpen(on || !!S.q);
+    if (on) qEl.focus(); else qEl.blur();
+  });
+  if (S.q) searchOpen(true);
   if (/Mac|iPhone|iPad/.test(navigator.platform || '')) $('qKey').textContent = '⌘ K';
   document.addEventListener('keydown', function (ev) {
     if ((ev.ctrlKey || ev.metaKey) && (ev.key === 'k' || ev.key === 'K')) { ev.preventDefault(); qEl.focus(); qEl.select(); return; }
@@ -672,12 +698,22 @@
   }
   themeLabel();
 
-  // Largeur : nombre de dates affichees, taille de la carte
-  var rsz = null;
+  // Mobile : fond assombri derriere le panneau Filtres (toucher = fermer sans appliquer)
+  var sheetBg = document.createElement('div');
+  sheetBg.className = 'sheet-bg';
+  sheetBg.addEventListener('click', function () { if (S.panel) closePanel(); });
+  document.body.appendChild(sheetBg);
+  // Hauteur de la barre fixe -> --top-h (cartes et titres qu'on fait defiler s'arretent dessous)
+  function syncTop() { document.documentElement.style.setProperty('--top-h', topH() + 'px'); }
+
+  // Largeur : nombre de dates affichees, taille de la carte. Sur telephone, la barre d'adresse qui
+  // apparait / disparait en defilant change la hauteur : on ne refait le rendu que si la largeur change.
+  var rsz = null, lastW = window.innerWidth;
   window.addEventListener('resize', function () {
     clearTimeout(rsz);
     rsz = setTimeout(function () {
-      if (S.tab === 'jour') renderJour();
+      syncTop();
+      if (window.innerWidth !== lastW) { lastW = window.innerWidth; if (S.tab === 'jour') renderJour(); }
       if (map && S.tab === 'carte') map.invalidateSize();
     }, 120);
   });
@@ -689,5 +725,5 @@
     if (Date.now() - t0 > 15 * 60000 && Date.now() - act > 60000 && !S.panel) { save(); location.reload(); }
   }, 30000);
 
-  compute(); renderHeader(); setTab(S.tab);
+  compute(); renderHeader(); setTab(S.tab); syncTop();
 })();
