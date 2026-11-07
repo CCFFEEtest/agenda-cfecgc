@@ -212,6 +212,8 @@ a:focus-visible, button:focus-visible, select:focus-visible, [tabindex]:focus-vi
 /* Onglets + ligne d'informations discrete (sources, derniere mise a jour) */
 .navbar { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 0 var(--sp-8); padding: 0 var(--sp-10);
           background: var(--card); border-bottom: 1px solid var(--line); }
+/* Barre orange sous les onglets : l onglet choisi (fond orange) se prolonge dedans, jolie separation */
+.tabs { flex-basis: 100%; border-bottom: 3px solid var(--accent-strong); }
 .tabs { display: flex; gap: var(--sp-2); }
 .tab { display: inline-flex; align-items: center; gap: var(--sp-4); padding: var(--sp-6) var(--sp-8) calc(var(--sp-6) - 3px);
        border: 0; border-bottom: 3px solid transparent; border-radius: var(--r-xs) var(--r-xs) 0 0; background: none;
@@ -511,10 +513,11 @@ a.ev-link:hover, .ev-link a:hover { text-decoration: underline; text-underline-o
   .wip-btn[aria-expanded="true"] { background: var(--accent-mid); }
   .wip { height: var(--logo-h-m); filter: none; }
 
-  .wip-tip { position: fixed; top: var(--top-h, 0px); left: 0; right: 0; transform: none; width: auto; max-width: none;
-             padding: var(--sp-7) calc(var(--sp-8) + env(safe-area-inset-right)) var(--sp-7) calc(var(--sp-8) + env(safe-area-inset-left));
-             border-radius: 0 0 var(--sheet-r) var(--sheet-r); font-size: var(--fs-body); box-shadow: var(--shadow-card);
-             animation: sheet-down .2s ease-out; }
+  /* Avertissement travaux : boite arrondie au milieu de l ecran ; un toucher n importe ou (meme dedans) la ferme */
+  .wip-tip { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: calc(100vw - 2 * var(--sp-10)); max-width: 340px;
+             padding: var(--sp-9) var(--sp-8); border-radius: var(--r-lg); font-size: var(--fs-body); box-shadow: var(--shadow-sheet); }
+  /* Filtres : sans survol au doigt, Reinitialiser passe en orange des qu un filtre est actif */
+  #fReset:not(:disabled) { background: var(--accent-strong); border-color: var(--accent-strong); color: var(--on-accent); }
   .wip-tip::before { display: none; }
   .bn-tools { display: contents; }
   #qBtn { display: inline-flex; }

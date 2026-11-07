@@ -768,7 +768,7 @@
     // Telephone : toucher l'icone ouvre / ferme le panneau qui descend sous la barre ; toucher ailleurs le ferme
     wipBtn.addEventListener('click', function () { if (MOBILE.matches) wip(wipTip.hidden); });
     document.addEventListener('click', function (ev) {
-      if (MOBILE.matches && !wipTip.hidden && !wipBox.contains(ev.target)) wip(false);
+      if (MOBILE.matches && !wipTip.hidden && (!wipBox.contains(ev.target) || wipTip.contains(ev.target))) wip(false);
     });
     document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && !wipTip.hidden) wip(false); });
   }
