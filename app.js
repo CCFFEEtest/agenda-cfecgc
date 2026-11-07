@@ -265,6 +265,15 @@
     }
   }
 
+  // Toucher / clic sur une carte : depliee (d'office ou choisie) -> on la replie ; repliee -> on la choisit et la deplie
+  function toggleCard(c) {
+    var id = +c.getAttribute('data-id');
+    if (c.classList.contains('open')) {
+      c.classList.remove('open');
+      if (S.sel === id) selectEvent(id, false); else c.setAttribute('aria-expanded', false);
+    } else selectEvent(id, false);
+  }
+
   /* ---------- 6. Prochains evenements : selecteur de dates et frise horaire ---------- */
   var chipsEl = $('chips'), planEl = $('plan');
   var jDates = [], jPer = 3;
@@ -519,41 +528,54 @@
   /* ---------- 9. Panneau Filtres (dans la colonne droite) ---------- */
   // Etat temporaire S.tf pendant l'edition ; F (filtres appliques) ne change qu'avec "Appliquer"
   function tfCount() { return ALL.filter(function (e) { return pass(e, S.tf) && hit(e); }).length; }
+  // Categories du panneau Filtres : [cle, libelle, test]. Ajouter une origine ou un mode = ajouter une ligne.
+  var ORIGINS = [['nat', 'Calendrier national', function (e) { return !e.a; }], ['mail', 'Communications email', function (e) { return e.a; }]];
+  var MODE_OPTS = ['p', 'd', 'h', 'u'].map(function (m) { return [m, MODES[m], function (e) { return e.mo === m; }]; });
   function panelHtml() {
     var f = S.tf, base = ALL.filter(hit), n = tfCount();
     function cnt(fn) { return base.filter(fn).length; }
     function chk(k, label, c) {
       return '<label class="chk"><input type="checkbox" data-k="' + k + '"' + (f[k] ? ' checked' : '') + '><span>' + label + '</span><span class="c">(' + c + ')</span></label>';
     }
+    // Un groupe n'est propose que s'il distingue vraiment quelque chose : au moins 2 categories ayant
+    // chacune au moins 1 rendez-vous. Les categories a 0 sont cachees (sauf si elles sont decochees :
+    // on doit toujours pouvoir les recocher), et le groupe reste affiche tant qu'une case est decochee.
+    var showInfo = false;
+    function group(legend, opts) {
+      var rows = opts.map(function (o) { return { o: o, c: cnt(o[2]) }; });
+      var full = rows.filter(function (r) { return r.c > 0; }).length;
+      var off = rows.some(function (r) { return !f[r.o[0]]; });
+      if (full < 2 && !off) return '';
+      return '<fieldset class="fgrp"><legend>' + legend + '</legend>' + rows.map(function (r) {
+        if (!r.c && f[r.o[0]]) return '';
+        if (r.o[0] !== 'u') return chk(r.o[0], r.o[1], r.c);
+        showInfo = true;
+        return '<div class="chkrow">' + chk('u', r.o[1], r.c)
+          + '<button type="button" class="info" id="fInfo" aria-expanded="' + S.info + '" aria-controls="fNote" aria-label="Que signifie « Non détecté » ?">' + IC.info + '</button></div>';
+      }).join('') + '</fieldset>';
+    }
+    // Lieu : zones ayant des rendez-vous (plus celle deja choisie) ; liste cachee s'il y en a moins de 2
+    var zones = ZONES.map(function (z) { return { z: z, c: cnt(function (e) { return e.r === z[0]; }) }; })
+      .filter(function (x) { return x.c > 0 || f.lieu === x.z[0]; });
+    var lieu = zones.filter(function (x) { return x.c > 0; }).length < 2 && !f.lieu ? ''
+      : '<div class="fgrp"><label class="lgd" for="fLieu">Lieu (quand identifié)</label><div class="fsel">' + IC.pin
+        + '<select id="fLieu"><option value="">Tous les lieux</option>' + zones.map(function (x) {
+            return '<option value="' + x.z[0] + '"' + (f.lieu === x.z[0] ? ' selected' : '') + '>' + x.z[1] + ' (' + x.c + ')</option>';
+          }).join('') + '</select></div></div>';
+    var groups = group('Origine des événements', ORIGINS) + group('Mode de participation', MODE_OPTS) + lieu;
     return '<div class="fpanel" role="region" aria-labelledby="fTitle">'
       + '<div class="rhead"><h2 id="fTitle">' + IC.funnel + 'Filtres <span class="n" id="fRes">(' + n + ' résultat' + (n > 1 ? 's' : '') + ')</span></h2>'
       + '<button type="button" class="xbtn" id="fClose" aria-label="Fermer les filtres sans les appliquer">' + IC.x + '</button></div>'
-      + '<div class="fgrid">'
-      + '<fieldset class="fgrp"><legend>Origine des événements</legend>'
-      + chk('nat', 'Calendrier national', cnt(function (e) { return !e.a; }))
-      + chk('mail', 'Communications email', cnt(function (e) { return e.a; })) + '</fieldset>'
-      + '<fieldset class="fgrp"><legend>Mode de participation</legend>'
-      + ['p', 'd', 'h'].map(function (m) { return chk(m, MODES[m], cnt(function (e) { return e.mo === m; })); }).join('')
-      + '<div class="chkrow">' + chk('u', MODES.u, cnt(function (e) { return e.mo === 'u'; }))
-      + '<button type="button" class="info" id="fInfo" aria-expanded="' + S.info + '" aria-controls="fNote" aria-label="Que signifie « Non détecté » ?">' + IC.info + '</button></div>'
-      + '</fieldset>'
-      + '<div class="fgrp"><label class="lgd" for="fLieu">Lieu (quand identifié)</label><div class="fsel">' + IC.pin
-      + '<select id="fLieu"><option value="">Tous les lieux</option>' + ZONES.map(function (z) {
-          // zones sans rendez-vous non proposees (sauf celle deja choisie)
-          var c = cnt(function (e) { return e.r === z[0]; });
-          if (!c && f.lieu !== z[0]) return '';
-          return '<option value="' + z[0] + '"' + (f.lieu === z[0] ? ' selected' : '') + '>' + z[1] + ' (' + c + ')</option>';
-        }).join('') + '</select></div></div>'
-      + '</div>'
-      + '<p class="fnote" id="fNote"' + (S.info ? '' : ' hidden') + '>' + IC.info + '<span>« Non détecté » : le mode de participation n’a pas pu être identifié à partir des informations disponibles (quand il faut cliquer sur un bouton dans un mail pour obtenir l’information par exemple).</span></p>'
+      + '<div class="fgrid">' + (groups || '<p class="empty">Aucun filtre utile : tous les rendez-vous affichés sont de la même sorte.</p>') + '</div>'
+      + (showInfo ? '<p class="fnote" id="fNote"' + (S.info ? '' : ' hidden') + '>' + IC.info + '<span>« Non détecté » : le mode de participation n’a pas pu être identifié à partir des informations disponibles (quand il faut cliquer sur un bouton dans un mail pour obtenir l’information par exemple).</span></p>' : '')
       + '<div class="ffoot"><button type="button" class="btn" id="fReset"' + (sameF(f, DEF) ? ' disabled' : '') + '>Réinitialiser (ne rien filtrer)</button>'
       + '<button type="button" class="btn btn-pri" id="fApply"' + (n ? '' : ' disabled') + '>' + applyTxt(n) + '</button></div>'
       + '</div>';
   }
-  // "Appliquer les filtres (3 éléments filtrés)" : nombre de rendez-vous que les filtres retirent de l'affichage
+  // "Appliquer les filtres (3 éléments masqués)" : nombre de rendez-vous que les filtres retirent de l'affichage
   function applyTxt(n) {
     var x = ALL.filter(hit).length - n;
-    return x ? 'Appliquer les filtres (' + x + (x > 1 ? ' éléments filtrés)' : ' élément filtré)') : 'Sortir du menu (aucun élément n’est filtré)';
+    return x ? 'Appliquer les filtres (' + x + (x > 1 ? ' éléments masqués)' : ' élément masqué)') : 'Sortir du menu (aucun élément n’est masqué)';
   }
   function refreshPanelCount() {
     var n = tfCount();
@@ -613,15 +635,36 @@
   chipsEl.addEventListener('click', function (ev) { var b = ev.target.closest('.chip'); if (b) pickJour(b.getAttribute('data-d')); });
   $('prev').addEventListener('click', function () { jourPage(-1); });
   $('next').addEventListener('click', function () { jourPage(1); });
+  // Changer de mois (fleches ou glisser) : une liste du mois ouverte suit le nouveau mois ; un jour choisi reste affiche
+  function calNav(step) {
+    var o = Math.max(0, Math.min(MAXOFF, S.calOff + step));
+    if (o === S.calOff) return;
+    S.calOff = o;
+    if (S.dCal.length === 7) { S.dCal = dkey(new Date(NOW.getFullYear(), NOW.getMonth() + S.calOff, 1)).slice(0, 7); renderRight(); }
+    renderCal(); save();
+  }
+  // Glisser au doigt vers la gauche / la droite (telephone, tablette), en plus des fleches : jours suivants /
+  // precedents sur la rangee des dates et la frise, mois suivant / precedent sur le calendrier. Seuls les gestes
+  // nettement horizontaux comptent, pour ne pas gener le defilement vertical.
+  function swipe(el, next, prev) {
+    var x0 = null, y0 = 0;
+    el.addEventListener('touchstart', function (ev) { if (ev.touches.length === 1) { x0 = ev.touches[0].clientX; y0 = ev.touches[0].clientY; } else x0 = null; }, { passive: true });
+    el.addEventListener('touchend', function (ev) {
+      if (x0 == null) return;
+      var dx = ev.changedTouches[0].clientX - x0, dy = ev.changedTouches[0].clientY - y0;
+      x0 = null;
+      if (Math.abs(dx) > 50 && Math.abs(dx) > 1.5 * Math.abs(dy)) (dx < 0 ? next : prev)();
+    }, { passive: true });
+  }
+  swipe(document.querySelector('.days'), function () { jourPage(1); }, function () { jourPage(-1); });
+  swipe(planEl, function () { jourPage(1); }, function () { jourPage(-1); });
+  swipe(calEl, function () { calNav(1); }, function () { calNav(-1); });
   planEl.addEventListener('click', function (ev) { var b = ev.target.closest('.pblk'); if (b) selectEvent(+b.getAttribute('data-id'), true); });
   // Calendrier
   calEl.addEventListener('click', function (ev) {
     var nav = ev.target.closest('.nav');
     if (nav) {
-      S.calOff = Math.max(0, Math.min(MAXOFF, S.calOff + +nav.getAttribute('data-nav')));
-      // liste du mois ouverte : elle suit le nouveau mois ; un jour choisi reste affiche a droite
-      if (S.dCal.length === 7) { S.dCal = dkey(new Date(NOW.getFullYear(), NOW.getMonth() + S.calOff, 1)).slice(0, 7); renderRight(); }
-      renderCal(); save(); return;
+      calNav(+nav.getAttribute('data-nav')); return;
     }
     var mt = ev.target.closest('.mtitle'), day = ev.target.closest('.mday');
     if (mt) S.dCal = mt.getAttribute('data-m');
@@ -651,7 +694,7 @@
       S.info = !S.info; $('fNote').hidden = !S.info; $('fInfo').setAttribute('aria-expanded', S.info); return;
     }
     if (t.closest('select, label')) return;
-    if ((x = t.closest('.ev'))) selectEvent(+x.getAttribute('data-id'), false);
+    if ((x = t.closest('.ev'))) toggleCard(x);
   });
   rp.addEventListener('change', function (ev) {
     var t = ev.target;
@@ -664,7 +707,8 @@
   // Clavier : Entree / Espace sur un bloc ou une carte = selection
   document.addEventListener('keydown', function (ev) {
     if ((ev.key === 'Enter' || ev.key === ' ') && ev.target.matches && ev.target.matches('.pblk, .ev')) {
-      ev.preventDefault(); selectEvent(+ev.target.getAttribute('data-id'), ev.target.classList.contains('pblk'));
+      ev.preventDefault();
+      if (ev.target.classList.contains('pblk')) selectEvent(+ev.target.getAttribute('data-id'), true); else toggleCard(ev.target);
     }
   });
   // Survol : le bloc et sa carte s'eclairent ensemble
