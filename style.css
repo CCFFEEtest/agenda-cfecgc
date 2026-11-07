@@ -169,7 +169,16 @@ a:focus-visible, button:focus-visible, select:focus-visible, [tabindex]:focus-vi
 .banner h1 { font-size: var(--fs-h1); line-height: var(--lh-title); letter-spacing: -.01em; }
 .banner h1 a { color: inherit; text-decoration: none; }
 /* panneau "travaux" (site en test) : juste apres le titre */
-.wip { height: var(--logo-h); width: auto; flex: none; filter: var(--shadow-logo); }
+.wip { display: block; height: var(--logo-h); width: auto; flex: none; filter: var(--shadow-logo); }
+/* Panneau travaux cliquable (PC) : bulle d avertissement bien visible sous le panneau */
+.wipbox { position: relative; flex: none; }
+.wip-btn { display: block; padding: 0; border: 0; background: none; cursor: pointer; }
+.wip-tip { position: absolute; top: calc(100% + var(--sp-4)); left: 50%; transform: translateX(-50%); z-index: 1200;
+           width: max-content; max-width: 320px; padding: var(--sp-5) var(--sp-6); border-radius: var(--r-sm);
+           background: var(--on-accent); color: var(--white); font-size: var(--fs-body-s); font-weight: var(--fw-semi);
+           line-height: var(--lh-snug); text-align: center; box-shadow: var(--shadow-card); }
+.wip-tip::before { content: ""; position: absolute; top: -6px; left: 50%; margin-left: -6px; border: 6px solid transparent;
+                   border-top: 0; border-bottom-color: var(--on-accent); }
 .bn-tools { margin-left: auto; display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-4); }
 
 .search { display: flex; align-items: center; gap: var(--sp-3); width: var(--search-w); height: var(--ctl-h);
@@ -289,7 +298,7 @@ footer { padding: 0 var(--sp-10) var(--sp-9); font-size: var(--fs-small); color:
 .chips li { position: relative; }
 .chips li + li::before { content: ""; position: absolute; left: calc(-1 * var(--sp-2) / 2 - .5px); top: 18%; bottom: 18%;
                          width: 1px; background: var(--line); }
-.chip:hover { background: var(--card-2); border-color: var(--line); }
+.chip:hover { background: var(--accent-soft); border-color: var(--accent); }   /* meme survol qu un jour du calendrier */
 .chip .cd { font-size: var(--fs-chip); font-weight: var(--fw-bold); white-space: nowrap; }
 .chip .cn { font-size: var(--fs-count); color: var(--muted); white-space: nowrap; }
 .chip.sel, .chip.sel:hover { background: var(--accent-strong); border-color: var(--accent-strong); color: var(--on-accent); }
@@ -354,7 +363,7 @@ a.ev-link:hover, .ev-link a:hover { text-decoration: underline; text-underline-o
           font-size: var(--fs-h3); font-weight: var(--fw-bold); text-transform: capitalize; cursor: pointer;
           transition: border-color .15s, background .15s; }
 .mtitle::after { content: " \25BE"; font-size: .8em; color: var(--muted); }
-.mtitle:hover { border-color: var(--accent); }
+.mtitle:hover { border-color: var(--accent); background: var(--accent-soft); }
 .mtitle.sel, .mtitle.sel:hover { border-color: var(--accent-strong); background: var(--accent-strong); color: var(--on-accent); }
 .mtitle.sel::after { color: var(--on-accent); }
 .mgrid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--sp-4); }
@@ -496,6 +505,8 @@ a.ev-link:hover, .ev-link a:hover { text-decoration: underline; text-underline-o
   .banner h1 { flex: 1 1 0; min-width: 0; font-size: var(--fs-h1-m); }   /* prend la place restante, passe a la ligne tout seul */
   .banner h1 br { display: none; }
   .wip { height: var(--logo-h-m); }
+  .wip-btn { cursor: default; }
+  .wip-tip { display: none !important; }   /* bulle seulement sur PC */
   .bn-tools { display: contents; }
   #qBtn { display: inline-flex; }
   .bn-btn { position: relative; justify-content: center; width: var(--tap); height: var(--tap); padding: 0; flex: none; }
