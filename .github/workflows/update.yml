@@ -54,10 +54,8 @@ jobs:
       - name: Recuperer les evenements et generer la page
         shell: powershell
         run: |
-          # SIMULATION ACTIVE : page publiee avec les mails d'exemple (exemples\apercu-test.ps1,
-          # dates decalees pour rester a venir). Quand les vrais mails arriveront (ajouts.json),
-          # remplacer la ligne suivante par : powershell -NoProfile -ExecutionPolicy Bypass -File .\fetch-agenda.ps1
-          powershell -NoProfile -ExecutionPolicy Bypass -File .\exemples\apercu-test.ps1
+          # Rendez-vous du site + ajouts.json (communications email a venir), s il existe
+          powershell -NoProfile -ExecutionPolicy Bypass -File .\fetch-agenda.ps1
           $code = $LASTEXITCODE
           Get-Content .\fetch.log -ErrorAction SilentlyContinue
           if ($code -ne 0) { exit $code }

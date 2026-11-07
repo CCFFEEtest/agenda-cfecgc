@@ -353,8 +353,9 @@ $ver = (Get-Date).ToUniversalTime().ToString("yyyyMMddHHmm")
 $slot = @(8, 14, 18) | Where-Object { $_ -gt $now.Hour } | Select-Object -First 1
 $next = if ($slot) { "${slot}h00" } else { 'demain 8h00' }
 $nat  = $events.Count - $added
-$stats = "<b>$nat</b> rendez-vous &agrave; venir sur <a href=""$source"" target=""_blank"" rel=""noopener"">cfecgc-orange.org</a>" +
-         $(if ($added) { " + <b>$added</b> issu$(if ($added -gt 1) { 's' }) de communications email" }) + " - mis &agrave; jour $stamp" 
+# PC (a droite des onglets, sur 2 lignes) : "Mis a jour le 07/11/2026 a 22:25 :" / "20 rv (14 de cfecgc-orange.org + 6 mails)"
+$stats = "Mis &agrave; jour le " + $now.ToString("dd/MM/yyyy '&agrave;' HH:mm", $fr) + " :<br><b>$($events.Count)</b> rv ($nat de <a href=""$source"" target=""_blank"" rel=""noopener"">cfecgc-orange.org</a>" +
+         $(if ($added) { " + $added mail$(if ($added -gt 1) { 's' })" }) + ")"
 # Version courte pour mobile : "19 rendez-vous a venir - mis a jour le 7 nov. 2026 a 17h34"
 $statsShort = "<b>$($events.Count)</b> rendez-vous &agrave; venir - mis &agrave; jour le " + $now.ToString("d MMM yyyy '&agrave;' HH'h'mm", $fr)
 

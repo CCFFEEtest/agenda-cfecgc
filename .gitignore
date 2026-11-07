@@ -4,8 +4,5 @@ fetch.log
 _site/
 CLAUDE.md
 .claude/
-# Exemples : seuls le JSON extrait et le script de simulation sont publies.
-# Les mails (.eml) contiennent des donnees personnelles et des liens de suivi : jamais publies.
-exemples/*
-!exemples/ajouts-test.json
-!exemples/apercu-test.ps1
+# Mails d exemple (.eml) : donnees personnelles et liens de suivi, jamais publies
+exemples/
