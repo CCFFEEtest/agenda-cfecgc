@@ -202,7 +202,7 @@ a:focus-visible, button:focus-visible, select:focus-visible, [tabindex]:focus-vi
 .bn-btn { display: inline-flex; align-items: center; gap: var(--sp-3); height: var(--ctl-h); padding: 0 var(--sp-6);
           border: 0; border-radius: var(--r-sm); background: var(--card); color: var(--text); box-shadow: var(--shadow-sm);
           font-size: var(--fs-body-s); font-weight: var(--fw-semi); cursor: pointer; transition: box-shadow .15s; }
-.bn-btn:hover { box-shadow: 0 0 0 2px var(--hover-light), var(--shadow-sm); }
+.bn-btn:hover { background: var(--accent-soft); }   /* meme survol qu un jour du calendrier */
 .bn-btn .fn { display: none; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .bn-btn[aria-expanded="true"] { background: var(--accent-mid); }
@@ -220,9 +220,8 @@ a:focus-visible, button:focus-visible, select:focus-visible, [tabindex]:focus-vi
 .tabs { border-bottom: 3px solid var(--accent); }
 /* PC : la barre orange court sous toute la ligne (onglets + infos a droite) */
 /* PC : bande blanche entre le bandeau et les onglets (l onglet orange ne touche plus le bandeau) */
-@media (min-width: 701px) { .navbar { border-bottom: 3px solid var(--accent); padding-top: var(--sp-4); } .tabs { border-bottom: 0; } }
+@media (min-width: 901px) { .navbar { border-bottom: 3px solid var(--accent); padding-top: var(--sp-4); } .tabs { border-bottom: 0; } }
 /* tablette (701-900 px) : la ligne d infos passe au-dessus des onglets pour ne pas les ecraser */
-@media (min-width: 701px) and (max-width: 900px) { .sub { order: -1; flex-basis: 100%; margin-left: 0; text-align: left; white-space: normal; } }
 /* PC : titre, panneau et outils toujours sur une seule ligne, centres en hauteur ; la recherche retrecit */
 @media (min-width: 901px) {   /* en dessous (tablette), les outils passent a la ligne */
   .banner, .navbar { flex-wrap: nowrap; }
@@ -236,7 +235,7 @@ a:focus-visible, button:focus-visible, select:focus-visible, [tabindex]:focus-vi
        border: 0; border-bottom: 3px solid transparent; border-radius: var(--r-xs) var(--r-xs) 0 0; background: none;
        color: var(--muted); font-size: var(--fs-body); font-weight: var(--fw-semi); cursor: pointer;
        transition: color .15s, background .15s; }
-.tab:hover { color: var(--text); background: var(--card-2); }
+.tab:hover { color: var(--text); background: var(--accent-soft); }   /* meme survol qu un jour du calendrier */
 /* Selection franche, comme le jour choisi du calendrier : fond orange soutenu, texte fonce */
 .tab[aria-selected="true"] { color: var(--on-accent); background: var(--accent); border-bottom-color: var(--accent); }
 /* ligne d'infos : au-dessus des onglets, alignee a gauche */
@@ -505,14 +504,14 @@ a.ev-link:hover, .ev-link a:hover { text-decoration: underline; text-underline-o
 /* Elements propres au mobile, caches sur PC : loupe, libelles courts, fond du panneau Filtres */
 #qBtn, .tab .sh, .sub .sh, .src .sh, .ev-time .sh, .sheet-bg { display: none; }
 
-/* Mobile (< 700 px), pense "mobile d'abord" : meme fonctionnement que sur PC, une seule colonne.
+/* Mobile et tablette (<= 900 px), pense "mobile d abord" : meme fonctionnement que sur PC, une seule colonne.
    - Barre fixe en haut (titre, loupe, Filtres, Mode nuit en icones) + ligne d'infos + 3 onglets :
      seul le contenu dessous defile.
    - Outil de l'onglet (dates + frise, calendrier, carte) puis la liste des rendez-vous dessous.
    - Filtres : panneau qui monte du bas, boutons toujours visibles, fond assombri (toucher = fermer).
    - iPhone / Android : zones tactiles >= 40 px, encoche et barre du bas (env(safe-area-inset-*)),
      champ de recherche en 16 px (sinon iOS zoome), pas de surbrillance grise au toucher. */
-@media (max-width: 700px) {
+@media (max-width: 900px) {   /* telephone ET tablette : meme interface tactile */
   body { padding: 0; -webkit-text-size-adjust: 100%; }
   button, a, [tabindex] { -webkit-tap-highlight-color: transparent; }
   .frame { border: 0; border-radius: 0; box-shadow: none; overflow: visible; }   /* sinon la barre ne reste pas collee */
@@ -638,6 +637,15 @@ a.ev-link:hover, .ev-link a:hover { text-decoration: underline; text-underline-o
 @keyframes sheet-up { from { transform: translateY(100%); } to { transform: none; } }
 @keyframes sheet-down { from { transform: translateY(-100%); opacity: 0; } to { transform: none; opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .fpanel, .wip-tip { animation: none; } }
+/* Tablette (701-900 px) : interface mobile, avec un peu plus d air pour la lecture */
+@media (min-width: 701px) and (max-width: 900px) {
+  .banner { padding-left: calc(var(--sp-10) + env(safe-area-inset-left)); padding-right: calc(var(--sp-10) + env(safe-area-inset-right)); }
+  .navbar { padding-left: var(--sp-9); padding-right: var(--sp-9); }
+  .cols { padding: var(--sp-8) var(--sp-9) var(--sp-10); gap: var(--sp-8); }
+  .col-left { padding: var(--sp-8); }
+  .rbody { padding: var(--sp-6) var(--sp-8) var(--sp-8); }
+  #map { aspect-ratio: 16 / 10; }   /* carre trop haut sur tablette */
+}
 /* Petits telephones (iPhone SE, 320-375 px) */
 @media (max-width: 380px) {
   .banner h1 { font-size: var(--fs-h1-s); }

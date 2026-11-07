@@ -250,7 +250,7 @@
       if (top < 0) window.scrollBy(0, top - 8);
     }
   }
-  var MOBILE = window.matchMedia('(max-width: 700px)');
+  var MOBILE = window.matchMedia('(max-width: 900px)');   // telephone et tablette : interface tactile
   // Hauteur de la barre fixe du haut (titre + onglets), pour ne rien cacher dessous
   function topH() { var t = document.querySelector('.topbar'); return MOBILE.matches && t ? t.offsetHeight : 0; }
   // Selection d'un rendez-vous : bloc de la frise et carte mis en evidence ensemble, carte developpee
