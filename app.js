@@ -14,6 +14,12 @@
 (function () {
   'use strict';
   var ALL = window.EVENTS || [];
+  // iPhone / iPad : Safari zoome sur une liste ou un champ en moins de 16 px ; maximum-scale=1 l'en empeche
+  // (le zoom a deux doigts reste possible sur iOS). Pas sur Android, ou cela bloquerait le zoom.
+  if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+    var vp = document.querySelector('meta[name=viewport]');
+    if (vp && !/maximum-scale/.test(vp.content)) vp.content += ', maximum-scale=1';
+  }
   function $(id) { return document.getElementById(id); }
   function each(sel, fn, root) { Array.prototype.forEach.call((root || document).querySelectorAll(sel), fn); }
 
@@ -214,8 +220,8 @@
   }
   function dayRight(k, uni) {
     var list = BYDAY[k] || [];
-    // peu de rendez-vous (moins de 3) : cartes depliees d'office, rien a ouvrir
-    return head(longDay(k) + todayPill(k), list.length, sortSel(list.length)) + body(list.length ? cardsHtml(list, uni, list.length < 3) : empty(emptyDay(k)));
+    // peu de rendez-vous : cartes depliees d'office (PC : moins de 3 ; telephone : seulement s'il n'y en a qu'un)
+    return head(longDay(k) + todayPill(k), list.length, sortSel(list.length)) + body(list.length ? cardsHtml(list, uni, MOBILE.matches ? list.length === 1 : list.length < 3) : empty(emptyDay(k)));
   }
   function renderRight() {
     var html;
@@ -248,6 +254,14 @@
     if (S.sel != null && reveal) {
       var c = rp.querySelector('.ev[data-id="' + id + '"]');
       if (c) c.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+    // Onglet Carte (PC et mobile) : ouvrir un rendez-vous recentre la carte sur son lieu, quelle que
+    // soit la liste affichee (tous les lieux, un lieu, a distance)
+    var ev = S.sel != null ? ALL[S.sel] : null;
+    if (ev && ev.p && S.tab === 'carte' && map) {
+      var mk = markers[ev.p.join(',')];
+      if (mk && layer.zoomToShowLayer) layer.zoomToShowLayer(mk, function () { map.panTo(ev.p); });
+      else map.setView(ev.p, Math.max(map.getZoom(), 11));
     }
   }
 
@@ -318,7 +332,9 @@
       if (e.nt) return;
       var s = Math.min(Math.max(e.s, H0), H1 - 0.25);
       var f = e.e != null && e.e > e.s ? e.e : e.s + 1;
-      blocks.push({ e: e, s: s, f: Math.max(Math.min(f, H1), s + 0.25) });
+      // mobile : bloc d au moins 20 px de haut pour que la duree ("30min") s y lise ; compte aussi pour les chevauchements
+      var minH = MOBILE.matches ? 22 / HH : 0.25;
+      blocks.push({ e: e, s: s, f: Math.max(Math.min(f, H1), s + minH) });
     });
     blocks.sort(function (a, b) { return a.s - b.s || b.f - a.f; });
     var cur = null, end = -1;
@@ -332,7 +348,7 @@
     for (t = H0; t <= H1; t++) h += '<span class="ph" style="top:' + (t - H0) * HH + 'px">' + pad(t) + 'h</span>';
     blocks.forEach(function (b) {
       var e = b.e, n = b.grp.lanes.length, top = (b.s - H0) * HH + 1, ht = Math.max((b.f - b.s) * HH - 2, 8);
-      var txt = ht >= 16 && e.dur ? '<span>' + e.dur + '</span>' : '';
+      var txt = ht >= (MOBILE.matches ? 18 : 16) && e.dur ? '<span>' + e.dur + '</span>' : '';
       h += '<div class="pblk' + (n > 5 ? ' tight' : '') + (ended(e) ? ' ended' : '') + (S.sel === e.id ? ' sel' : '') + '" role="button" tabindex="0"'
         + ' data-id="' + e.id + '" aria-label="' + esc(e.t + ', ' + (e.h || '')) + '"'
         + ' style="--ev:' + e.c + ';top:' + top + 'px;height:' + ht + 'px;left:calc(' + (100 * b.lane / n) + '% + 2px);width:calc(' + (100 / n) + '% - 4px)">' + txt + '</div>';
@@ -462,6 +478,10 @@
     drawMarkers(); renderRight(); save();
     if (k && fromList && markers[k]) {
       if (layer.zoomToShowLayer) layer.zoomToShowLayer(markers[k]); else map.panTo(PLACES[k].p);
+    }
+    // Telephone : toucher un numero sur la carte descend jusqu'aux rendez-vous de ce lieu (liste sous la carte)
+    if (k && !fromList && MOBILE.matches) {
+      window.scrollTo({ top: window.scrollY + rp.getBoundingClientRect().top - topH() - 8, behavior: 'smooth' });
     }
   }
   function rightCarte() {

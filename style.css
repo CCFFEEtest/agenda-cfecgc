@@ -114,7 +114,7 @@
   --plan-gutter-m: 32px;
   --plan-col-m: .62fr;      /* largeur de la frise a cote des cartes (onglet Prochains, mobile) */
   --day-h-m: 44px;
-  --fs-filter-m: 16px;      /* textes du panneau Filtres sur mobile (16 px mini pour la liste, sinon iOS zoome) */
+  --fs-filter-m: .875rem;   /* textes du panneau Filtres sur mobile (cases et liste des lieux, meme taille) */
   --sheet-r: 18px;          /* coins du panneau Filtres qui monte du bas */
   --shadow-sheet: 0 -8px 30px rgba(0,0,0,.25);
   --backdrop: rgba(0,0,0,.45);
@@ -592,6 +592,8 @@ a.ev-link:hover, .ev-link a:hover { text-decoration: underline; text-underline-o
 
   /* Carte : assez haute pour s'en servir, assez basse pour pouvoir faire defiler la page a cote */
   #map { height: auto; aspect-ratio: 1 / 1; }   /* carte carree : on voit la liste dessous */
+  /* assez de place sous la liste pour qu un toucher sur la carte puisse la faire remonter sous la barre */
+  body[data-tab="carte"] .col-right { min-height: calc(100vh - var(--top-h, 0px) - var(--sp-8)); }
   .mapspan { grid-column: 2 / -1; justify-self: start; text-align: left; }   /* periode sous le libelle */
 
   /* Panneau Filtres : monte du bas de l'ecran */
@@ -607,7 +609,7 @@ a.ev-link:hover, .ev-link a:hover { text-decoration: underline; text-underline-o
   .fgrid { grid-template-columns: minmax(0, 1fr); gap: var(--sp-6); padding: var(--sp-6) var(--sp-8); }
   .chk { padding: var(--sp-3) 0; font-size: var(--fs-filter-m); }   /* meme taille pour cases et liste des lieux */
   .chk input { width: 20px; height: 20px; }
-  .fsel select { font-size: var(--fs-filter-m); padding: var(--sp-4) 0; }   /* 16 px : sinon iOS zoome */
+  .fsel select { font-size: var(--fs-filter-m); padding: var(--sp-4) 0; }
   .fnote { margin: 0 var(--sp-8) var(--sp-4); }
   .ffoot { flex-wrap: wrap; padding: var(--sp-5) var(--sp-8) calc(var(--sp-5) + env(safe-area-inset-bottom)); }
   .ffoot .btn { flex: 1 1 auto; height: var(--tap-l); }
