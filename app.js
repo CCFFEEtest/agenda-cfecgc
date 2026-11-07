@@ -725,13 +725,17 @@
     if (Date.now() - t0 > 15 * 60000 && Date.now() - act > 60000 && !S.panel) { save(); location.reload(); }
   }, 30000);
 
-  // Panneau travaux (PC) : un clic affiche / masque l'avertissement "version de demonstration" ;
-  // un clic ailleurs ou Echap le referme. Sur telephone la bulle est masquee par le CSS.
+  // Panneau travaux (PC) : le survol affiche l'avertissement "version de demonstration" ;
+  // Echap le referme. Sur telephone la bulle est masquee par le CSS.
   var wipBtn = $('wipBtn'), wipTip = $('wipTip');
   function wip(on) { wipTip.hidden = !on; wipBtn.setAttribute('aria-expanded', on); }
   if (wipBtn) {
-    wipBtn.addEventListener('click', function (ev) { ev.stopPropagation(); wip(wipTip.hidden); });
-    document.addEventListener('click', function () { if (!wipTip.hidden) wip(false); });
+    // la bulle s'affiche au survol de la souris (ou au focus clavier), sans clic
+    var wipBox = wipBtn.parentNode;
+    wipBox.addEventListener('mouseenter', function () { wip(true); });
+    wipBox.addEventListener('mouseleave', function () { wip(false); });
+    wipBtn.addEventListener('focus', function () { wip(true); });
+    wipBtn.addEventListener('blur', function () { wip(false); });
     document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && !wipTip.hidden) wip(false); });
   }
 
