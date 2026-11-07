@@ -353,11 +353,23 @@ $ver = (Get-Date).ToUniversalTime().ToString("yyyyMMddHHmm")
 $slot = @(8, 14, 18) | Where-Object { $_ -gt $now.Hour } | Select-Object -First 1
 $next = if ($slot) { "${slot}h00" } else { 'demain 8h00' }
 $nat  = $events.Count - $added
-# PC (a droite des onglets, sur 2 lignes) : "Mis a jour le 07/11/2026 a 22:25 :" / "20 rv (14 de cfecgc-orange.org + 6 mails)"
-$stats = "Mis &agrave; jour le " + $now.ToString("dd/MM/yyyy '&agrave;' HH:mm", $fr) + " :<br><b>$($events.Count)</b> rv ($nat de <a href=""$source"" target=""_blank"" rel=""noopener"">cfecgc-orange.org</a>" +
-         $(if ($added) { " + $added mail$(if ($added -gt 1) { 's' })" }) + ")"
-# Version courte pour mobile : "19 rendez-vous a venir - mis a jour le 7 nov. 2026 a 17h34"
-$statsShort = "<b>$($events.Count)</b> rendez-vous &agrave; venir - mis &agrave; jour le " + $now.ToString("d MMM yyyy '&agrave;' HH'h'mm", $fr)
+# Nombre d'evenements par origine. PC : "20 evenements (14 sur cfecgc-orange.org + 6 issus des emails)" ;
+# mobile : "... + 6 mails)". Une origine a 0 n'est pas citee (sans parentheses), singulier si 1.
+$tot  = $events.Count
+$site = "<a href=""$source"" target=""_blank"" rel=""noopener"">cfecgc-orange.org</a>"
+function Plural($n) { if ($n -gt 1) { 's' } else { '' } }
+function Counts($mailTxt) {
+  $s = "<b>$tot</b> &eacute;v&eacute;nement$(Plural $tot)"
+  if ($nat -and $added) { return "$s ($nat sur $site + $added $mailTxt)" }
+  if ($added) { return "$s $mailTxt" }
+  return "$s sur $site"
+}
+$mailLong  = "issu$(Plural $added) des emails"
+$mailShort = $(if ($nat) { "mail$(Plural $added)" } else { "issu$(Plural $added) des mails" })
+# PC (a droite des onglets, sur 2 lignes) : "Mis a jour le 07/11/2026 a 22:25 :" / compteurs
+$stats = "Mis &agrave; jour le " + $now.ToString("dd/MM/yyyy '&agrave;' HH:mm", $fr) + " :<br>" + (Counts $mailLong)
+# Mobile (au-dessus des onglets) : compteurs courts + date
+$statsShort = (Counts $mailShort) + " - mis &agrave; jour le " + $now.ToString("dd/MM/yyyy '&agrave;' HH:mm", $fr)
 
 # Icones (SVG en ligne, avec width/height pour rester petites meme sans CSS)
 $svgA = 'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"'
