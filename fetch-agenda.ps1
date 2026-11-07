@@ -395,7 +395,7 @@ $page = @"
 <div class="frame">
 <div class="topbar">
   <header class="banner">
-    <h1><a href="./">Agenda public CFE-CGC Orange <br>Fonctions Corp</a></h1>
+    <h1><a href="./"><span class="lg">Agenda public CFE-CGC Orange<br>Fonctions Corp</span><span class="sh">Agenda public CFE-CGC<br>Orange FC</span></a></h1>
     <span class="wipbox"><button type="button" class="wip-btn" id="wipBtn" aria-expanded="false" aria-controls="wipTip" aria-label="Site en test : informations"><img class="wip" src="travaux.svg?v=$ver" alt="Site en travaux : test en cours" width="55" height="48"></button><span class="wip-tip" id="wipTip" role="tooltip" hidden>Version de d&eacute;monstration en cours de test ! Certains &eacute;v&eacute;nements peuvent &ecirc;tre manquants (notamment ceux diffus&eacute;s par mail)</span></span>
     <div class="bn-tools">
       <button type="button" class="bn-btn" id="qBtn" aria-label="Rechercher" aria-expanded="false" aria-controls="q">$icoSearch</button>

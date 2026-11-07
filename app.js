@@ -157,8 +157,9 @@
   /* ---------- 5. Cartes d'evenements (meme composant dans les trois onglets) ---------- */
   var rp = $('rpane');
   function srcTag(e) {
-    return '<span class="src' + (e.a ? ' src-mail' : '') + '">' + (e.a ? 'Communication email' : 'Calendrier national') + '</span>'
-      + (ended(e) ? '<span class="src src-end">événement terminé</span>' : '');
+    // libelles longs (PC) et courts (mobile : "national", "mail", "terminé"), le CSS choisit
+    return '<span class="src' + (e.a ? ' src-mail' : '') + '">' + (e.a ? '<span class="lg">Communication email</span><span class="sh">mail</span>' : '<span class="lg">Calendrier national</span><span class="sh">national</span>') + '</span>'
+      + (ended(e) ? '<span class="src src-end"><span class="lg">événement </span>terminé</span>' : '');
   }
   function modeTag(e) {
     if (!e.m || !MODES[e.m]) return '';
@@ -704,7 +705,11 @@
   sheetBg.addEventListener('click', function () { if (S.panel) closePanel(); });
   document.body.appendChild(sheetBg);
   // Hauteur de la barre fixe -> --top-h (cartes et titres qu'on fait defiler s'arretent dessous)
-  function syncTop() { document.documentElement.style.setProperty('--top-h', topH() + 'px'); }
+  function syncTop() {
+    var s = document.documentElement.style, d = document.querySelector('.days');
+    s.setProperty('--top-h', topH() + 'px');
+    s.setProperty('--days-h', (d ? d.offsetHeight : 0) + 'px');   // mobile : la frise se colle sous les dates
+  }
 
   // Largeur : nombre de dates affichees, taille de la carte. Sur telephone, la barre d'adresse qui
   // apparait / disparait en defilant change la hauteur : on ne refait le rendu que si la largeur change.
@@ -732,10 +737,15 @@
   if (wipBtn) {
     // la bulle s'affiche au survol de la souris (ou au focus clavier), sans clic
     var wipBox = wipBtn.parentNode;
-    wipBox.addEventListener('mouseenter', function () { wip(true); });
-    wipBox.addEventListener('mouseleave', function () { wip(false); });
-    wipBtn.addEventListener('focus', function () { wip(true); });
-    wipBtn.addEventListener('blur', function () { wip(false); });
+    wipBox.addEventListener('mouseenter', function () { if (!MOBILE.matches) wip(true); });
+    wipBox.addEventListener('mouseleave', function () { if (!MOBILE.matches) wip(false); });
+    wipBtn.addEventListener('focus', function () { if (!MOBILE.matches) wip(true); });
+    wipBtn.addEventListener('blur', function () { if (!MOBILE.matches) wip(false); });
+    // Telephone : toucher l'icone ouvre / ferme le panneau qui descend sous la barre ; toucher ailleurs le ferme
+    wipBtn.addEventListener('click', function () { if (MOBILE.matches) wip(wipTip.hidden); });
+    document.addEventListener('click', function (ev) {
+      if (MOBILE.matches && !wipTip.hidden && !wipBox.contains(ev.target)) wip(false);
+    });
     document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && !wipTip.hidden) wip(false); });
   }
 
