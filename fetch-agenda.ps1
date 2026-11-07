@@ -445,6 +445,8 @@ $page = @"
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.min.js"></script>
 <script src="app.js?v=$ver"></script>
+<!-- Statistiques de visite anonymes (GoatCounter : sans cookie ni donnee personnelle), tableau de bord sur bricebrice2.goatcounter.com -->
+<script data-goatcounter="https://bricebrice2.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </body>
 </html>
 "@
