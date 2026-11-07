@@ -689,7 +689,14 @@
     if (t.closest('[data-geo]')) { S.geo = false; S.place = null; renderCarte(); renderRight(); save(); return; }
     if (t.closest('#fClose')) { closePanel(); return; }
     if (t.closest('#fApply')) { applyPanel(); return; }
-    if (t.closest('#fReset')) { S.tf = copyF(DEF); renderRight(); return; }
+    // Reinitialiser : on coche tout sur place, sans redessiner le panneau (sinon, sur mobile, il remonte
+    // avec son animation et revient en haut : effet de flash)
+    if (t.closest('#fReset')) {
+      S.tf = copyF(DEF);
+      each('.fpanel input[data-k]', function (i) { i.checked = true; });
+      if ($('fLieu')) $('fLieu').value = '';
+      refreshPanelCount(); return;
+    }
     if (t.closest('#fInfo')) {
       S.info = !S.info; $('fNote').hidden = !S.info; $('fInfo').setAttribute('aria-expanded', S.info); return;
     }
