@@ -109,6 +109,16 @@
     return n.getHours() * 60 + n.getMinutes() >= +m[1] * 60 + (+(m[2] || 0));
   }
   // Horaire affiche. Plusieurs jours : debut - 18h00 puis "(+N jours)"
+  // Horaire court (mobile) : "16:00-17:00", plusieurs jours "14:00-18:00 (+3 j)"
+  function timeShort(e) {
+    if (!e.h) return 'Horaire non précisé';
+    var t = (e.h.match(/\d{1,2}\s*h\s*\d{0,2}/gi) || []).map(function (x) {
+      var m = /(\d{1,2})\s*h\s*(\d{0,2})/i.exec(x); return pad(+m[1]) + ':' + (m[2] ? pad(+m[2]) : '00');
+    });
+    if (!t.length) return esc(e.h);
+    if (e.j) return t[0] + '-18:00 (+' + e.j + ' j)';
+    return t.join('-');
+  }
   function timeText(e) {
     if (!e.h) return 'Horaire non précisé';
     if (!e.j) return esc(e.h);
@@ -180,7 +190,7 @@
     var link = e.a ? '<span class="ev-link">→ voir mail (<a href="' + SUBSCRIBE + '" target="_blank" rel="noopener">s’inscrire</a>)</span>'
       : e.u ? '<a class="ev-link" href="' + esc(e.u) + '"' + (/^mailto:/i.test(e.u) ? '' : ' target="_blank" rel="noopener"') + '>Voir le détail →</a>' : '';
     return '<article class="ev' + (on ? ' sel' : '') + (open ? ' open' : '') + (ended(e) ? ' ended' : '') + '" data-id="' + e.id + '" style="--ev:' + (uni ? UNI : e.c) + '" tabindex="0" aria-expanded="' + !!(on || open) + '">'
-      + '<div class="ev-top"><span class="ev-time">' + timeText(e) + '</span>' + srcTag(e) + '</div>'
+      + '<div class="ev-top"><span class="ev-time"><span class="lg">' + timeText(e) + '</span><span class="sh">' + timeShort(e) + '</span></span>' + srcTag(e) + '</div>'
       + '<div class="ev-ttl">' + esc(e.t) + '</div>'
       + '<div class="ev-meta">' + (e.l ? '<span class="it ev-loc">' + IC.pin + esc(e.l) + '</span>' : '') + modeTag(e)
       + (!e.a && e.g && !isNat(e.g) ? '<span class="it ev-tag">' + esc(e.g) + '</span>' : '') + link + '</div>'

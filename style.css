@@ -109,6 +109,7 @@
   --tap-l: 44px;            /* boutons du panneau Filtres */
   --logo-h-m: 26px;
   --fs-h1-m: 1.05rem;       /* titre sur telephone */
+  --fs-time-m: .75rem;      /* horaire des cartes sur telephone */
   --fs-h1sub: .82rem;       /* sous-titre "evenements publics" */
   --fs-h1-s: .92rem;        /* titre sur petit telephone */
   --badge-m: 18px;          /* pastille "filtres actifs" sur l icone */
@@ -488,7 +489,7 @@ a.ev-link:hover, .ev-link a:hover { text-decoration: underline; text-underline-o
   .fgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 /* Elements propres au mobile, caches sur PC : loupe, libelles courts, fond du panneau Filtres */
-#qBtn, .tab .sh, .sub .sh, .src .sh, .sheet-bg { display: none; }
+#qBtn, .tab .sh, .sub .sh, .src .sh, .ev-time .sh, .sheet-bg { display: none; }
 
 /* Mobile (< 700 px), pense "mobile d'abord" : meme fonctionnement que sur PC, une seule colonne.
    - Barre fixe en haut (titre, loupe, Filtres, Mode nuit en icones) + ligne d'infos + 3 onglets :
@@ -542,7 +543,8 @@ a.ev-link:hover, .ev-link a:hover { text-decoration: underline; text-underline-o
   .sub { padding: var(--sp-3) var(--sp-1) var(--sp-2); }
   .sub .lg, .tab .lg { display: none; }
   .sub .sh, .tab .sh, .src .sh { display: inline; }
-  .src .lg { display: none; }   /* pastilles courtes : "national", "mail", "terminé" */
+  .src .lg, .ev-time .lg { display: none; }   /* pastilles courtes "national", "mail", "terminé" ; horaire "16:00-17:00" */
+  .ev-time .sh { display: inline; }
   .tabs { width: 100%; }
   .tab { flex: 1 1 0; justify-content: center; gap: var(--sp-3); min-height: var(--tap);
          padding: var(--sp-4) var(--sp-2) calc(var(--sp-4) - 3px); font-size: var(--fs-meta); }
@@ -584,7 +586,7 @@ a.ev-link:hover, .ev-link a:hover { text-decoration: underline; text-underline-o
   body[data-tab="jour"] .rpane > .rhead { display: none; }
   body[data-tab="jour"] .ev:not(.sel):not(.open) .ev-loc { display: none; }
   .ev-top { gap: var(--sp-1) var(--sp-3); }   /* pastille courte : tient a cote de l horaire */
-  .ev-time { white-space: nowrap; }
+  .ev-time { white-space: nowrap; font-size: var(--fs-time-m); }
   .ev .src { flex: none; }
   .ev, .rhead, .dayh { scroll-margin-top: calc(var(--top-h, 0px) + var(--sp-5) + var(--days-h, 0px) + var(--sp-4)); }
   .ph { left: calc(-1 * var(--plan-gutter-m)); width: calc(var(--plan-gutter-m) - var(--sp-3)); }
