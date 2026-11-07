@@ -641,6 +641,8 @@ a.ev-link:hover, .ev-link a:hover { text-decoration: underline; text-underline-o
 /* Petits telephones (iPhone SE, 320-375 px) */
 @media (max-width: 380px) {
   .banner h1 { font-size: var(--fs-h1-s); }
-
+}
+/* Tres petits ecrans (< 340 px) : onglets sans icone */
+@media (max-width: 340px) {
   .tab svg { display: none; }
 }
