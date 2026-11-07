@@ -210,7 +210,7 @@
     }).join('') + '</select></label>';
   }
   function head(title, n, extra) {
-    return '<div class="rhead"><h2>' + title + (n != null ? ' : <span class="n">' + nRdv(n) + '</span>' : '') + '</h2>' + (extra || '') + '</div>';
+    return '<div class="rhead"><h2>' + title + (n != null ? ' <span class="n">(' + nRdv(n) + ')</span>' : '') + '</h2>' + (extra || '') + '</div>';
   }
   function body(html) { return '<div class="rbody">' + html + '</div>'; }
   function empty(msg) { return '<p class="empty">' + msg + '</p>'; }
@@ -599,7 +599,11 @@
 
   // Onglets (fleches gauche/droite entre onglets)
   Array.prototype.forEach.call(tabs, function (b, i) {
-    b.addEventListener('click', function () { if (S.tab !== b.getAttribute('data-tab')) setTab(b.getAttribute('data-tab')); });
+    b.addEventListener('click', function () {
+      if (S.tab !== b.getAttribute('data-tab')) setTab(b.getAttribute('data-tab'));
+      // telephone : changer d'onglet, ou retoucher l'onglet actif, remonte en haut de la page
+      if (MOBILE.matches) window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
     b.addEventListener('keydown', function (ev) {
       var d = ev.key === 'ArrowRight' ? 1 : ev.key === 'ArrowLeft' ? -1 : 0; if (!d) return;
       var nb = tabs[(i + d + tabs.length) % tabs.length]; nb.focus(); nb.click();

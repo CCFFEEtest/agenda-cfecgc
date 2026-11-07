@@ -547,7 +547,7 @@ a.ev-link:hover, .ev-link a:hover { text-decoration: underline; text-underline-o
           gap: var(--sp-5); }
   .col-left { padding: var(--sp-5) var(--sp-4); }
   .rhead { padding: var(--sp-4) var(--sp-5); min-height: 0; }
-  .rhead h2 { font-size: var(--fs-body); }
+  .rhead h2 { font-size: var(--fs-h3); }   /* meme taille que les titres de jour (.dayh) */
   .rbody { padding: var(--sp-5) var(--sp-4) var(--sp-6); }
   .ev, .rhead, .dayh { scroll-margin-top: calc(var(--top-h, 0px) + var(--sp-4)); }
   .ev { padding: var(--sp-5) var(--sp-4) var(--sp-5) var(--sp-6); column-gap: var(--sp-3); }
@@ -564,10 +564,10 @@ a.ev-link:hover, .ev-link a:hover { text-decoration: underline; text-underline-o
   body[data-tab="jour"] .cols { grid-template-columns: minmax(0, var(--plan-col-m)) minmax(0, 1fr); column-gap: var(--sp-3); row-gap: var(--sp-3); }
   body[data-tab="jour"] .col-left, body[data-tab="jour"] #vJour { display: contents; }
   /* dates collees sous la barre, frise collee sous les dates : seule la liste des cartes defile */
-  body[data-tab="jour"] .days { position: sticky; top: var(--top-h, 0px); z-index: 6; box-shadow: 0 calc(-1 * var(--sp-5)) 0 var(--bg);
+  body[data-tab="jour"] .days { position: sticky; top: calc(var(--top-h, 0px) + var(--sp-5));   /* meme ecart sous les onglets qu au repos : rien ne bouge */ z-index: 6; box-shadow: 0 calc(-1 * var(--sp-5)) 0 var(--bg);
                                 grid-column: 1 / -1; margin: 0; padding: var(--sp-3) var(--sp-2); background: var(--card);
                                 border: 1px solid var(--line); border-radius: var(--r-lg); }
-  body[data-tab="jour"] .planbox { grid-column: 1; align-self: start; position: sticky; top: calc(var(--top-h, 0px) + var(--days-h, 0px) + var(--sp-3));
+  body[data-tab="jour"] .planbox { grid-column: 1; align-self: start; position: sticky; top: calc(var(--top-h, 0px) + var(--sp-5) + var(--days-h, 0px) + var(--sp-3));
                                    padding: var(--sp-4) var(--sp-2) var(--sp-4) var(--plan-gutter-m); background: var(--card);
                                    border: 1px solid var(--line); border-radius: var(--r-lg); }
   body[data-tab="jour"] .col-right { grid-column: 2; }
@@ -581,7 +581,7 @@ a.ev-link:hover, .ev-link a:hover { text-decoration: underline; text-underline-o
   .ev-top { gap: var(--sp-1) var(--sp-3); }   /* pastille courte : tient a cote de l horaire */
   .ev-time { white-space: nowrap; }
   .ev .src { flex: none; }
-  .ev, .rhead, .dayh { scroll-margin-top: calc(var(--top-h, 0px) + var(--days-h, 0px) + var(--sp-4)); }
+  .ev, .rhead, .dayh { scroll-margin-top: calc(var(--top-h, 0px) + var(--sp-5) + var(--days-h, 0px) + var(--sp-4)); }
   .ph { left: calc(-1 * var(--plan-gutter-m)); width: calc(var(--plan-gutter-m) - var(--sp-3)); }
 
   /* Calendrier */
