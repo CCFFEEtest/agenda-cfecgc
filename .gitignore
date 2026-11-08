@@ -6,3 +6,5 @@ CLAUDE.md
 .claude/
 # Mails d exemple (.eml) : donnees personnelles et liens de suivi, jamais publies
 exemples/
+# Presentation du projet pour la doc (locale)
+PRESENTATION-PROJET.md
