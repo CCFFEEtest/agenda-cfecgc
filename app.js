@@ -344,6 +344,8 @@
     S.dJour = d;
     if (S.sel != null && !(BYDAY[d] || []).some(function (e) { return e.id === S.sel; })) S.sel = null;
     renderJour(); renderRight(); save();
+    // telephone : nouveau jour (date, fleches, glisser) = frise et cartes remises en haut de la page
+    if (MOBILE.matches) window.scrollTo({ top: 0, behavior: 'smooth' });
   }
   // Frise : position et hauteur proportionnelles aux horaires ; rendez-vous simultanes cote a cote.
   // Groupes de rendez-vous qui se chevauchent -> colonnes (premiere colonne libre) ; tous les blocs
