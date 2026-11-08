@@ -133,7 +133,7 @@
   function isNat(g) { var s = String(g || '').trim().toLowerCase(); return s === 'calendrier national' || /^.v.nements? externes?$/.test(s); }
 
   /* ---------- 3. Filtres (appliques / temporaires) et recherche ---------- */
-  var DEF = { nat: true, mail: true, p: true, d: true, h: true, u: true, cv: true, lieu: '' };
+  var DEF = { nat: true, mail: true, p: true, d: true, u: true, cv: true, lieu: '' };   // d = distanciel ET hybride (un seul filtre)
   function copyF(f) { var o = {}; for (var k in DEF) o[k] = f[k]; return o; }
   function sameF(a, b) { for (var k in DEF) if (a[k] !== b[k]) return false; return true; }
   // Filtre "Lieu" par zone (cle r, calculee d'apres le departement dans fetch-agenda.ps1)
@@ -145,7 +145,8 @@
     if (sv) for (var k in DEF) if (typeof sv[k] === typeof DEF[k]) F[k] = sv[k];
     if (F.lieu && !ZONES.some(function (z) { return z[0] === F.lieu; })) F.lieu = '';
   } catch (x) {}
-  function pass(e, f) { return (e.a ? f.mail : f.nat) && f[e.mo] && (f.cv || !e.cv) && (!f.lieu || e.r === f.lieu); }
+  function fmode(e) { return e.mo === 'h' ? 'd' : e.mo; }   // filtre : hybride range avec distanciel / Teams
+  function pass(e, f) { return (e.a ? f.mail : f.nat) && f[fmode(e)] && (f.cv || !e.cv) && (!f.lieu || e.r === f.lieu); }
   var Q = [];
   function hit(e) { for (var i = 0; i < Q.length; i++) if (e.txt.indexOf(Q[i]) < 0) return false; return true; }
 
@@ -371,7 +372,10 @@
     for (t = H0; t <= H1; t++) h += '<span class="ph" style="top:' + (t - H0) * HH + 'px">' + pad(t) + 'h</span>';
     blocks.forEach(function (b) {
       var e = b.e, n = b.grp.lanes.length, top = (b.s - H0) * HH + 1, ht = Math.max((b.f - b.s) * HH - 2, 8);
-      var txt = ht >= (MOBILE.matches ? 18 : 16) && e.dur ? '<span>' + e.dur + '</span>' : '';
+      // telephone : 5 rendez-vous ou plus cote a cote = aucun libelle dans ce groupe (sinon certains blocs en ont, d'autres pas)
+      // libelle : la duree ; sans heure de fin (duree inconnue), l'heure de debut ("08h30")
+      var lbl = e.dur || (e.s != null ? pad(Math.floor(e.s)) + 'h' + pad(Math.round((e.s % 1) * 60)) : '');
+      var txt = ht >= (MOBILE.matches ? 18 : 16) && lbl && !(MOBILE.matches && n >= 5) ? '<span>' + lbl + '</span>' : '';
       h += '<div class="pblk' + (n > 5 ? ' tight' : '') + (ended(e) ? ' ended' : '') + (S.sel === e.id ? ' sel' : '') + '" role="button" tabindex="0"'
         + ' data-id="' + e.id + '" aria-label="' + esc(e.t + ', ' + (e.h || '')) + '"'
         + ' style="--ev:' + e.c + ';top:' + top + 'px;height:' + ht + 'px;left:calc(' + (100 * b.lane / n) + '% + 2px);width:calc(' + (100 / n) + '% - 4px)">' + txt + '</div>';
@@ -544,7 +548,10 @@
   function tfCount() { return ALL.filter(function (e) { return pass(e, S.tf) && hit(e); }).length; }
   // Categories du panneau Filtres : [cle, libelle, test]. Ajouter une origine ou un mode = ajouter une ligne.
   var ORIGINS = [['nat', 'Calendrier national', function (e) { return !e.a; }], ['mail', 'Communications email', function (e) { return e.a; }]];
-  var MODE_OPTS = ['p', 'd', 'h', 'u'].map(function (m) { return [m, MODES[m], function (e) { return e.mo === m; }]; });
+  // Mode dans les filtres : distanciel / Teams et hybride fusionnes en une seule case
+  var MODE_OPTS = [['p', MODES.p], ['d', 'Distanciel / Teams / Hybride'], ['u', MODES.u]].map(function (o) {
+    return [o[0], o[1], function (e) { return fmode(e) === o[0]; }];
+  });
   function panelHtml() {
     var f = S.tf, base = ALL.filter(hit), n = tfCount();
     function cnt(fn) { return base.filter(fn).length; }

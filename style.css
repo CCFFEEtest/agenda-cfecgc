@@ -631,6 +631,7 @@ a.ev-link:hover, .ev-link a:hover { text-decoration: underline; text-underline-o
   .fpanel::before { content: ""; display: block; width: 40px; height: 4px; margin: var(--sp-4) auto 0; border-radius: var(--r-pill);
                     background: var(--line); }
   .fpanel .rhead { position: static; }
+  .fpanel > * { flex-shrink: 0; }   /* panneau plus haut que l ecran (iPhone) : il defile, sans ecraser l en-tete "Filtres" */
   .fgrid { grid-template-columns: minmax(0, 1fr); gap: var(--sp-6); padding: var(--sp-6) var(--sp-8); }
   .chk { padding: var(--sp-3) 0; font-size: var(--fs-filter-m); }   /* meme taille pour cases et liste des lieux */
   .chk input { width: 20px; height: 20px; }
