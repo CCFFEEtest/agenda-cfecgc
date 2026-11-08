@@ -191,8 +191,8 @@
   // open : carte depliee d'office (journee de moins de 3 rendez-vous)
   function card(e, uni, open) {
     var on = S.sel === e.id;
-    // Communication email : aucun lien publie, renvoi vers le mail et l'inscription aux communications
-    var link = e.a ? '<span class="ev-link">→ voir mail (<a href="' + SUBSCRIBE + '" target="_blank" rel="noopener">s’abonner</a>)</span>'
+    // Communication email : aucun lien publie, lien vers l'inscription aux listes de diffusion
+    var link = e.a ? '<a class="ev-link" href="' + SUBSCRIBE + '" target="_blank" rel="noopener">→ Liste de diffusion</a>'
       : e.u ? '<a class="ev-link" href="' + esc(e.u) + '"' + (/^mailto:/i.test(e.u) ? '' : ' target="_blank" rel="noopener"') + '>Voir le détail →</a>' : '';
     return '<article class="ev' + (on ? ' sel' : '') + (open ? ' open' : '') + (ended(e) ? ' ended' : '') + '" data-id="' + e.id + '" style="--ev:' + (uni ? UNI : e.c) + '" tabindex="0" aria-expanded="' + !!(on || open) + '">'
       + '<div class="ev-top"><span class="ev-time"><span class="lg">' + timeText(e) + '</span><span class="sh">' + timeShort(e) + '</span></span>' + srcTag(e) + '</div>'
@@ -712,7 +712,7 @@
   // Colonne droite : cartes, tri, lieux, panneau Filtres
   rp.addEventListener('click', function (ev) {
     var t = ev.target;
-    if (t.closest('a')) return;   // liens "Voir le detail", "s'inscrire" : comportement normal
+    if (t.closest('a')) return;   // liens "Voir le detail", "Liste de diffusion" : comportement normal
     var x;
     if ((x = t.closest('[data-place]'))) { pickPlace(x.getAttribute('data-place') || null, true); return; }
     if (t.closest('[data-geo]')) { S.geo = false; S.place = null; renderCarte(); renderRight(); save(); return; }
