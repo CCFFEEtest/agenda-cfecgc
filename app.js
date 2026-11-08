@@ -596,7 +596,7 @@
       + '<button type="button" class="xbtn" id="fClose" aria-label="Fermer les filtres sans les appliquer">' + IC.x + '</button></div>'
       + '<div class="fgrid">' + (groups || '<p class="empty">Aucun filtre utile : tous les rendez-vous affichés sont de la même sorte.</p>') + '</div>'
       + (showInfo ? '<p class="fnote" id="fNote"' + (S.info ? '' : ' hidden') + '>' + IC.info + '<span>« Non détecté » : le mode de participation n’a pas pu être identifié à partir des informations disponibles (quand il faut cliquer sur un bouton dans un mail pour obtenir l’information par exemple).</span></p>' : '')
-      + '<div class="ffoot"><button type="button" class="btn" id="fReset"' + (sameF(f, DEF) ? ' disabled' : '') + '>Réinitialiser (ne rien filtrer)</button>'
+      + '<div class="ffoot"><button type="button" class="btn" id="fReset"' + (sameF(f, DEF) ? ' disabled' : '') + '>Réinitialiser (afficher tout)</button>'
       + '<button type="button" class="btn btn-pri" id="fApply"' + (n ? '' : ' disabled') + '>' + applyTxt(n) + '</button></div>'
       + '</div>';
   }
