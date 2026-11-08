@@ -424,7 +424,7 @@
       }
       d.setDate(d.getDate() + 1);
     }
-    html += '</div><p class="mhint">' + nRdv(total) + ' ce mois-ci - cliquez sur le nom du mois pour tous les afficher.</p>';
+    html += '</div><p class="mhint">' + nRdv(total) + ' ce mois-ci<span class="lg"> - cliquez</span><span class="sh">.<br>Cliquez</span> sur le nom du mois pour tous les afficher.</p>';
     calEl.innerHTML = html;
   }
   function rightCal() {

@@ -506,7 +506,7 @@ a.ev-link:hover, .ev-link a:hover { text-decoration: underline; text-underline-o
   .fgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 /* Elements propres au mobile, caches sur PC : loupe, libelles courts, fond du panneau Filtres */
-#qBtn, .tab .sh, .sub .sh, .src .sh, .ev-time .sh, .sheet-bg { display: none; }
+#qBtn, .tab .sh, .sub .sh, .src .sh, .ev-time .sh, .mhint .sh, .sheet-bg { display: none; }
 
 /* Mobile et tablette (<= 900 px), pense "mobile d abord" : meme fonctionnement que sur PC, une seule colonne.
    - Barre fixe en haut (titre, loupe, Filtres, Mode nuit en icones) + ligne d'infos + 3 onglets :
@@ -560,8 +560,8 @@ a.ev-link:hover, .ev-link a:hover { text-decoration: underline; text-underline-o
   .sub { order: -1; flex-basis: 100%; margin-left: 0; text-align: left; white-space: normal; padding: var(--sp-3) var(--sp-1) var(--sp-2); }
   .sub .lg, .tab .lg { display: none; }
   .sub .sh, .tab .sh, .src .sh { display: inline; }
-  .src .lg, .ev-time .lg { display: none; }   /* pastilles courtes "national", "mail", "terminé" ; horaire "16:00-17:00" */
-  .ev-time .sh { display: inline; }
+  .src .lg, .ev-time .lg, .mhint .lg { display: none; }   /* pastilles courtes "national", "mail", "terminé" ; horaire "16:00-17:00" */
+  .ev-time .sh, .mhint .sh { display: inline; }
   .ft-pc { display: none; }   /* pied de page court sur mobile */
   body[data-tab="jour"] .tpill { display: none; }   /* pas de pastille "aujourd hui" dans Prochains (la date du jour garde sa mention) */
   .tabs { width: 100%; flex-basis: 100%; }
