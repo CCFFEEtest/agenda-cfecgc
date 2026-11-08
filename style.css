@@ -592,7 +592,7 @@ a.ev-link:hover, .ev-link a:hover { text-decoration: underline; text-underline-o
   body[data-tab="jour"] .days { position: sticky; top: calc(var(--top-h, 0px) + var(--sp-5));   /* meme ecart sous les onglets qu au repos : rien ne bouge */ z-index: 6; box-shadow: 0 calc(-1 * var(--sp-5)) 0 var(--bg);
                                 grid-column: 1 / -1; margin: 0; padding: var(--sp-3) var(--sp-2); background: var(--card);
                                 border: 1px solid var(--line); border-radius: var(--r-lg); }
-  body[data-tab="jour"] .planbox { grid-column: 1; align-self: start; position: sticky; top: calc(var(--top-h, 0px) + var(--sp-5) + var(--days-h, 0px) + var(--sp-3));
+  body[data-tab="jour"] .planbox { grid-column: 1; align-self: start; position: static;   /* frise et cartes defilent ensemble, a l identique (la frise collante bougeait de facon irreguliere) */
                                    padding: var(--sp-4) var(--sp-2) var(--sp-4) var(--plan-gutter-m); background: var(--card);
                                    border: 1px solid var(--line); border-radius: var(--r-lg); }
   body[data-tab="jour"] .col-right { grid-column: 2; }
