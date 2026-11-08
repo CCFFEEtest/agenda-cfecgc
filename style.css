@@ -122,7 +122,8 @@
   --col-gap: 20px;          /* entre les deux colonnes */
   --cols-min-h: 640px;      /* hauteur minimale des colonnes */
   --nav-btn: 30px;          /* boutons ronds precedent / suivant */
-  --chip-h: 62px;           /* dates du selecteur */
+  --chip-h: 68px;           /* dates du selecteur : hauteur fixe, mention "Aujourd hui" comprise (le bloc ne bouge pas) */
+  --chip-h-m: 62px;         /* idem sur mobile */
   --plan-gutter: 42px;      /* graduations de la frise */
   --day-h: 52px;            /* cases du calendrier */
   --cnt: 20px;              /* pastilles de comptage */
@@ -313,7 +314,7 @@ footer { padding: 0 var(--sp-10) var(--sp-9); font-size: var(--fs-small); color:
 /* Dates serrees : app.js en met autant que possible (jusqu'a 7) sans couper les libelles */
 .days { display: flex; align-items: center; gap: var(--sp-2); margin-bottom: var(--sp-8); }
 .chips { flex: 1; min-width: 0; display: grid; grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr)); gap: var(--sp-2); list-style: none; }
-.chip { width: 100%; min-height: var(--chip-h); display: flex; flex-direction: column; align-items: center; justify-content: center;
+.chip { width: 100%; height: var(--chip-h); display: flex; flex-direction: column; align-items: center; justify-content: center;
         gap: var(--sp-1); padding: var(--sp-3) var(--sp-1); overflow: hidden; border: 1px solid transparent; border-radius: var(--r-sm);
         background: none; cursor: pointer; transition: background .15s, border-color .15s; }
 /* Fine ligne verticale entre deux dates (au milieu de l'ecart) */
@@ -561,7 +562,7 @@ a.ev-link:hover, .ev-link a:hover { text-decoration: underline; text-underline-o
   .src .lg, .ev-time .lg { display: none; }   /* pastilles courtes "national", "mail", "terminé" ; horaire "16:00-17:00" */
   .ev-time .sh { display: inline; }
   .ft-pc { display: none; }   /* pied de page court sur mobile */
-  body[data-tab="jour"] .today-tag, body[data-tab="jour"] .tpill { display: none; }   /* pas de tag "aujourd hui" dans Prochains */
+  body[data-tab="jour"] .tpill { display: none; }   /* pas de pastille "aujourd hui" dans Prochains (la date du jour garde sa mention) */
   .tabs { width: 100%; flex-basis: 100%; }
   .tab { flex: 1 1 0; justify-content: center; gap: var(--sp-3); min-height: var(--tap);
          padding: var(--sp-4) var(--sp-2) calc(var(--sp-4) - 3px); font-size: var(--fs-meta); }
@@ -581,7 +582,7 @@ a.ev-link:hover, .ev-link a:hover { text-decoration: underline; text-underline-o
 
   /* Prochains evenements : boutons ronds plus grands, frise un peu plus serree a gauche */
   .nav { width: 36px; height: 36px; }
-  .chip { min-height: 56px; }
+  .chip { height: var(--chip-h-m); }
   .planbox { padding-left: var(--plan-gutter-m); }
   /* Onglet Prochains : comme l ancienne version, dates sur toute la largeur puis frise a gauche et
      cartes a droite cote a cote (vue d un coup d oeil) ; la frise reste visible quand on fait defiler */
