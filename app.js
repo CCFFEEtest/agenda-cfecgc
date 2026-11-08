@@ -333,7 +333,7 @@
   }
   // Duree dans un bloc de la frise : seulement si elle tient en largeur (sinon bloc sans texte)
   function fitDurations() {
-    each('.pblk > span', function (s) { if (s.scrollWidth > s.parentNode.clientWidth - 4) s.remove(); }, planEl);
+    each('.pblk > span', function (s) { if (s.scrollWidth > s.parentNode.clientWidth - 2) s.remove(); }, planEl);
   }
   function jourPage(step) {
     var page = Math.floor(jDates.indexOf(S.dJour) / jPer) + step;

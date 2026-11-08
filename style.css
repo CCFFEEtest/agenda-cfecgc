@@ -109,6 +109,7 @@
   --logo-h-m: 26px;
   --fs-h1-m: 1.05rem;       /* titre sur telephone */
   --fs-time-m: .75rem;      /* horaire des cartes sur telephone */
+  --fs-blk-m: .62rem;       /* duree dans les blocs de la frise sur telephone */
   --fs-h1sub: .82rem;       /* sous-titre "evenements publics" */
   --fs-h1-s: .92rem;        /* titre sur petit telephone */
   --badge-m: 18px;          /* pastille "filtres actifs" sur l icone */
@@ -584,6 +585,7 @@ a.ev-link:hover, .ev-link a:hover { text-decoration: underline; text-underline-o
   .nav { width: 36px; height: 36px; }
   .chip { height: var(--chip-h-m); }
   .planbox { padding-left: var(--plan-gutter-m); }
+  .pblk { font-size: var(--fs-blk-m); letter-spacing: -.02em; }   /* duree plus petite : "2h30" tient dans 3-4 colonnes */
   /* Onglet Prochains : comme l ancienne version, dates sur toute la largeur puis frise a gauche et
      cartes a droite cote a cote (vue d un coup d oeil) ; la frise reste visible quand on fait defiler */
   body[data-tab="jour"] .cols { grid-template-columns: minmax(0, var(--plan-col-m)) minmax(0, 1fr); column-gap: var(--sp-3); row-gap: var(--sp-3); }
