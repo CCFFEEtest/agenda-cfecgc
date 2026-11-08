@@ -369,8 +369,10 @@ $mailLong  = "issu$(Plural $added) des emails"
 $mailShort = $(if ($nat) { "mail$(Plural $added)" } else { "issu$(Plural $added) des mails" })
 # PC (a droite des onglets, sur 2 lignes) : "Mis a jour le 07/11/2026 a 22:25 :" / compteurs
 $stats = "Mis &agrave; jour le " + $now.ToString("dd/MM/yyyy '&agrave;' HH:mm", $fr) + " :<br>" + (Counts $mailLong "cfecgc-orange.org")
-# Mobile (au-dessus des onglets), court : "20 evenements (14 sur cfecgc-orange + 6 mails), maj le 07/11/26"
-$statsShort = (Counts $mailShort "cfecgc-orange") + ", m&agrave;j le " + $now.ToString("dd/MM '&agrave;' HH'h'", $fr)
+# Mobile (au-dessus des onglets), court : "25 evenements : 19 sur cfecgc-orange + 6 mails (maj : 08/11 a 10h)"
+$cs = Counts $mailShort "cfecgc-orange"
+if ($nat -and $added) { $cs = $cs -replace ' \(', ' : ' -replace '\)$', '' }   # "25 evenements : 19 sur ... + 6 mails"
+$statsShort = $cs + " (m&agrave;j : " + $now.ToString("dd/MM '&agrave;' HH'h'", $fr) + ")"
 
 # Icones (SVG en ligne, avec width/height pour rester petites meme sans CSS)
 $svgA = 'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"'
