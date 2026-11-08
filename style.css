@@ -468,8 +468,8 @@ a.ev-link:hover, .ev-link a:hover { text-decoration: underline; text-underline-o
 .fgrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-9); padding: var(--sp-9) var(--sp-8); }
 .fgrp { min-width: 0; border: 0; }
 .fgrp legend, .fgrp .lgd { display: block; margin-bottom: var(--sp-5); font-size: var(--fs-body-s); font-weight: var(--fw-bold); }
-.chk { display: flex; align-items: center; gap: var(--sp-4); padding: var(--sp-2) 0; font-size: var(--fs-body-s); cursor: pointer; }
-.chk input { flex: none; width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
+.chk { display: flex; align-items: flex-start; gap: var(--sp-4); padding: var(--sp-2) 0; font-size: var(--fs-body-s); cursor: pointer; }
+.chk input { flex: none; width: 16px; height: 16px; margin-top: .15em; accent-color: var(--accent); cursor: pointer; }   /* case alignee sur la 1re ligne du texte */
 .chk .c { color: var(--muted); }
 .chkrow { display: flex; align-items: center; gap: var(--sp-2); }
 .info { display: grid; place-items: center; width: 24px; height: 24px; border: 0; border-radius: 50%; background: none;

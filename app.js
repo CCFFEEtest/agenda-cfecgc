@@ -31,6 +31,8 @@
   var SUBSCRIBE = 'https://odyssee.cfecgc-orange.org/com/page/1387';
   var MODES = { p: 'Présentiel', d: 'Distanciel / Teams', h: 'Hybride', u: 'Non détecté' };
   var H0 = 8, H1 = 20, HH = 40;   // frise : 8h-20h, 40 px par heure
+  // "Moment de convivialite" (filtre) : mots cherches dans le titre seul, sans accents ni majuscules
+  var RE_CONV = /\b(accueils? cafes?|cafes? gourmands?|cafes? croissants?|pause cafe|cafe|petits?[ -]dejeuners?|dejeuners?|brunch|cocktails?|aperitifs?|apero|afterwork|after[ -]work|gouters?|buffet|collation|verre de l.amitie|pot de l.amitie|moments? convivia\w*|convivialite)\b/;
   var fLong = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
   var fChip = new Intl.DateTimeFormat('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
   var fMonth = new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric' });
@@ -86,6 +88,8 @@
     e.nt = e.s == null;                            // sans horaire : pas de bloc dans la frise
     e.sk = e.nt ? 99 : e.s;                        // cle de tri (sans horaire : en fin de journee)
     e.mo = e.m || 'u';
+    // Moment de convivialite : seulement si le TITRE l'annonce (un evenement d'un autre genre peut offrir un cafe en bonus)
+    e.cv = RE_CONV.test(norm(e.t));
     // Texte de recherche : titre, description (intervenants compris), lieu, libelle (pas pour les mails)
     // + k, texte complet de la page detail (intervenants...), jamais affiche
     e.txt = norm([e.t, e.x, e.l, e.a ? '' : e.g, e.k].join(' | '));
@@ -129,7 +133,7 @@
   function isNat(g) { var s = String(g || '').trim().toLowerCase(); return s === 'calendrier national' || /^.v.nements? externes?$/.test(s); }
 
   /* ---------- 3. Filtres (appliques / temporaires) et recherche ---------- */
-  var DEF = { nat: true, mail: true, p: true, d: true, h: true, u: true, lieu: '' };
+  var DEF = { nat: true, mail: true, p: true, d: true, h: true, u: true, cv: true, lieu: '' };
   function copyF(f) { var o = {}; for (var k in DEF) o[k] = f[k]; return o; }
   function sameF(a, b) { for (var k in DEF) if (a[k] !== b[k]) return false; return true; }
   // Filtre "Lieu" par zone (cle r, calculee d'apres le departement dans fetch-agenda.ps1)
@@ -141,7 +145,7 @@
     if (sv) for (var k in DEF) if (typeof sv[k] === typeof DEF[k]) F[k] = sv[k];
     if (F.lieu && !ZONES.some(function (z) { return z[0] === F.lieu; })) F.lieu = '';
   } catch (x) {}
-  function pass(e, f) { return (e.a ? f.mail : f.nat) && f[e.mo] && (!f.lieu || e.r === f.lieu); }
+  function pass(e, f) { return (e.a ? f.mail : f.nat) && f[e.mo] && (f.cv || !e.cv) && (!f.lieu || e.r === f.lieu); }
   var Q = [];
   function hit(e) { for (var i = 0; i < Q.length; i++) if (e.txt.indexOf(Q[i]) < 0) return false; return true; }
 
@@ -572,7 +576,12 @@
         + '<select id="fLieu"><option value="">Tous les lieux</option>' + zones.map(function (x) {
             return '<option value="' + x.z[0] + '"' + (f.lieu === x.z[0] ? ' selected' : '') + '>' + x.z[1] + ' (' + x.c + ')</option>';
           }).join('') + '</select></div></div>';
-    var groups = group('Origine des événements', ORIGINS) + group('Mode de participation', MODE_OPTS) + lieu;
+    // Moment de convivialite : une case (cochee = les cafes, dejeuners, cocktails... sont affiches, decochee = masques).
+    // Proposee seulement s'il y a des rendez-vous des deux sortes (convivialite et autre), ou si la case est decochee.
+    var nCv = cnt(function (e) { return e.cv; }), nOther = cnt(function (e) { return !e.cv; });
+    var conv = (nCv && nOther) || !f.cv ? '<fieldset class="fgrp"><legend>Moment de convivialité</legend>'
+      + chk('cv', 'Afficher les cafés, déjeuners…', nCv) + '</fieldset>' : '';
+    var groups = group('Origine des événements', ORIGINS) + group('Mode de participation', MODE_OPTS) + conv + lieu;
     return '<div class="fpanel" role="region" aria-labelledby="fTitle">'
       + '<div class="rhead"><h2 id="fTitle">' + IC.funnel + 'Filtres <span class="n" id="fRes">(' + n + ' résultat' + (n > 1 ? 's' : '') + ')</span></h2>'
       + '<button type="button" class="xbtn" id="fClose" aria-label="Fermer les filtres sans les appliquer">' + IC.x + '</button></div>'
