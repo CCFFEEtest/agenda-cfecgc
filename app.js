@@ -627,6 +627,7 @@
     });
     $('vJour').hidden = t !== 'jour'; $('vCal').hidden = t !== 'cal'; $('vCarte').hidden = t !== 'carte';
     renderLeft(); renderRight(); save();
+    syncTop();   // hauteur de la rangee des dates : mesuree une fois l onglet affiche (sinon 0, la frise passait dessous)
   }
 
   // Onglets (fleches gauche/droite entre onglets)
