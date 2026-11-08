@@ -284,6 +284,8 @@ footer { padding: 0 var(--sp-10) var(--sp-9); font-size: var(--fs-small); color:
 [aria-checked="true"] > .sw .knob { transform: translateX(calc(var(--sw-w) - var(--knob) - 6px)); }
 
 /* En-tete de la colonne droite (fixe pendant le defilement) */
+/* en-tete en haut de la colonne : coins du haut arrondis comme le cadre (sinon ses angles carres debordent sur mobile) */
+.rpane > .rhead:first-child { border-radius: var(--r-lg) var(--r-lg) 0 0; }
 .rhead { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-4) var(--sp-6);
          min-height: 56px; padding: var(--sp-5) var(--sp-8); background: var(--card); border-bottom: 1px solid var(--line); }
 .rhead h2 { display: flex; align-items: baseline; gap: var(--sp-3); flex-wrap: wrap; font-size: var(--fs-h2); line-height: var(--lh-snug); }
