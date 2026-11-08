@@ -560,6 +560,8 @@ a.ev-link:hover, .ev-link a:hover { text-decoration: underline; text-underline-o
   .sub .sh, .tab .sh, .src .sh { display: inline; }
   .src .lg, .ev-time .lg { display: none; }   /* pastilles courtes "national", "mail", "terminé" ; horaire "16:00-17:00" */
   .ev-time .sh { display: inline; }
+  .ft-pc { display: none; }   /* pied de page court sur mobile */
+  body[data-tab="jour"] .today-tag, body[data-tab="jour"] .tpill { display: none; }   /* pas de tag "aujourd hui" dans Prochains */
   .tabs { width: 100%; flex-basis: 100%; }
   .tab { flex: 1 1 0; justify-content: center; gap: var(--sp-3); min-height: var(--tap);
          padding: var(--sp-4) var(--sp-2) calc(var(--sp-4) - 3px); font-size: var(--fs-meta); }

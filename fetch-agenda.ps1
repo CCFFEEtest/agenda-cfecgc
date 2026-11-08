@@ -370,7 +370,7 @@ $mailShort = $(if ($nat) { "mail$(Plural $added)" } else { "issu$(Plural $added)
 # PC (a droite des onglets, sur 2 lignes) : "Mis a jour le 07/11/2026 a 22:25 :" / compteurs
 $stats = "Mis &agrave; jour le " + $now.ToString("dd/MM/yyyy '&agrave;' HH:mm", $fr) + " :<br>" + (Counts $mailLong "cfecgc-orange.org")
 # Mobile (au-dessus des onglets), court : "20 evenements (14 sur cfecgc-orange + 6 mails), maj le 07/11/26"
-$statsShort = (Counts $mailShort "cfecgc-orange") + ", m&agrave;j le " + $now.ToString("dd/MM/yy", $fr)
+$statsShort = (Counts $mailShort "cfecgc-orange") + ", m&agrave;j le " + $now.ToString("dd/MM '&agrave;' HH'h'", $fr)
 
 # Icones (SVG en ligne, avec width/height pour rester petites meme sans CSS)
 $svgA = 'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"'
@@ -452,7 +452,7 @@ $page = @"
       <div class="rpane" id="rpane"></div>
     </section>
   </main>
-  <footer>Prochaine mise &agrave; jour des donn&eacute;es vers $next - les liens &laquo; Voir le d&eacute;tail &raquo; ouvrent le site d'origine.</footer>
+  <footer>Prochaine mise &agrave; jour des donn&eacute;es vers $next<span class="ft-pc"> - les liens &laquo; Voir le d&eacute;tail &raquo; ouvrent le site d'origine.</span></footer>
 </div>
 <script>window.EVENTS = $evJson;</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
